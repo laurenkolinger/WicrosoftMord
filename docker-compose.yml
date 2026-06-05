@@ -1,0 +1,16 @@
+# Run from inside any project you want to review:
+#   REDLINE_PROJECT=$PWD docker compose -f /path/to/redline/docker-compose.yml up
+# or just use the `redline up` launcher, which sets this for you.
+services:
+  redline:
+    build: .
+    image: redline:latest
+    container_name: redline
+    ports:
+      - "${REDLINE_PORT:-8787}:8787"
+    environment:
+      REDLINE_PORT: "8787"
+    volumes:
+      # The project under review is mounted at /work.
+      - "${REDLINE_PROJECT:-./}:/work"
+    restart: unless-stopped

@@ -1,0 +1,7 @@
+# Per-project review data is created at runtime by `redline init`, never committed.
+.redline/
+# Python
+__pycache__/
+*.pyc
+# OS
+.DS_Store

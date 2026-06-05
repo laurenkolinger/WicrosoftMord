@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Redline launcher — scaffold + run the review surface in any project.
+#
+#   redline init     scaffold .redline/ + install the Claude skill into THIS project
+#   redline up       start the review UI for THIS project (Docker)
+#   redline down     stop it
+#   redline serve    run without Docker (needs python3; pandoc optional for .docx)
+#   redline export F  render docs/F.md -> .docx via pandoc (Docker)
+#
+set -euo pipefail
+
+REDLINE_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT="$(pwd)"
+PORT="${REDLINE_PORT:-8787}"
+
+scaffold() {
+  mkdir -p "$PROJECT/.redline/comments" "$PROJECT/.redline/exports" "$PROJECT/docs"
+  [ -f "$PROJECT/.redline/config.json" ] || cat > "$PROJECT/.redline/config.json" <<JSON
+{ "title": "$(basename "$PROJECT")", "docsDir": "docs" }
+JSON
+  if [ ! -f "$PROJECT/docs/welcome.md" ] && [ -z "$(ls -A "$PROJECT/docs" 2>/dev/null)" ]; then
+    cp "$REDLINE_HOME/templates/welcome.md" "$PROJECT/docs/welcome.md"
+    cp "$REDLINE_HOME/templates/references.bib" "$PROJECT/references.bib"
+  fi
+  # Install the Claude skill into the project so `/redline` works in this repo.
+  mkdir -p "$PROJECT/.claude/skills/redline"
+  cp "$REDLINE_HOME/skill/redline/SKILL.md" "$PROJECT/.claude/skills/redline/SKILL.md"
+  # Drop the contract doc Claude reads.
+  cp "$REDLINE_HOME/templates/CLAUDE.redline.md" "$PROJECT/.redline/CLAUDE.redline.md"
+  echo "✓ scaffolded .redline/, docs/, and .claude/skills/redline in: $PROJECT"
+  echo "  Next:  redline up      then open  http://localhost:$PORT"
+  echo "  In the VS Code Claude Code panel, run:  /loop 45s /redline"
+}
+
+case "${1:-help}" in
+  init)   scaffold ;;
+  up)     REDLINE_PROJECT="$PROJECT" REDLINE_PORT="$PORT" \
+            docker compose -f "$REDLINE_HOME/docker-compose.yml" up --build -d
+          echo "✓ Redline up at http://localhost:$PORT  (project: $PROJECT)" ;;
+  down)   docker compose -f "$REDLINE_HOME/docker-compose.yml" down ;;
+  serve)  REDLINE_DATA="$PROJECT/.redline" REDLINE_PORT="$PORT" \
+            python3 "$REDLINE_HOME/server/redline.py" ;;
+  export) docker exec redline pandoc "/work/docs/$2" -o "/work/.redline/exports/$(basename "${2%.*}").docx" --citeproc 2>/dev/null \
+            && echo "✓ .redline/exports/$(basename "${2%.*}").docx" || echo "run 'redline up' first" ;;
+  *) sed -n '2,12p' "$REDLINE_HOME/bin/redline" ;;
+esac

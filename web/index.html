@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redline</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span id="project-title">Redline</span>
+    </div>
+    <div class="status" id="status">connecting…</div>
+    <div class="controls">
+      <button id="font-dec" title="Smaller text (⌘−)">A−</button>
+      <button id="font-inc" title="Larger text (⌘+)">A+</button>
+      <button id="theme-toggle" title="Toggle light / dark">◐</button>
+      <button id="export-btn" title="Export current document to .docx">Export .docx</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <nav class="sidebar" id="doc-list" aria-label="Documents"></nav>
+
+    <section class="doc-pane">
+      <div class="doc-scroll" id="doc-scroll">
+        <div class="doc-positioner" id="doc-positioner">
+          <article class="doc" id="doc"></article>
+          <div class="overlay" id="overlay"></div>
+        </div>
+      </div>
+      <div class="selection-bubble" id="bubble" hidden>
+        <button id="add-comment">💬 Comment</button>
+      </div>
+    </section>
+
+    <aside class="comments-pane" id="comments-pane" aria-label="Comments">
+      <div class="comments-head">
+        <strong>Comments</strong>
+        <div class="filters">
+          <button data-filter="open" class="active">Open</button>
+          <button data-filter="all">All</button>
+        </div>
+      </div>
+      <div id="comments-list"></div>
+    </aside>
+  </main>
+
+  <!-- comment composer -->
+  <div class="composer-backdrop" id="composer-backdrop" hidden>
+    <div class="composer">
+      <div class="composer-quote" id="composer-quote"></div>
+      <textarea id="composer-input" placeholder="Leave a comment for Claude… (e.g. 'tighten this', 'needs a citation', 'this overstates the result')"></textarea>
+      <div class="composer-actions">
+        <button id="composer-cancel" class="ghost">Cancel</button>
+        <button id="composer-save" class="primary">Comment</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
