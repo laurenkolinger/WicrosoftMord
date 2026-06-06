@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=14" />
+  <link rel="stylesheet" href="/styles.css?v=15" />
 </head>
 <body>
   <header class="topbar">
@@ -19,7 +19,6 @@
     <span class="activity" id="activity" hidden></span>
     <button class="newchanges" id="newchanges" hidden title="Claude updated this document">✶ New changes from Claude</button>
     <div class="controls">
-      <button id="toggle-nav" title="Hide / show the navigation pane">☰</button>
       <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
       <button id="refs-toggle" title="Split off a References panel">▦ Refs</button>
@@ -30,15 +29,22 @@
       <button id="theme-toggle" title="Toggle light / dark">◐</button>
       <button id="wire-btn" title="Copy the command that connects this to Claude">⌁ Wire to Claude</button>
       <button id="export-btn" title="Export current document to .docx">Export .docx</button>
-      <button id="toggle-comments" title="Hide / show the comments pane">▤</button>
     </div>
   </header>
 
   <main class="layout">
-    <nav class="sidebar" aria-label="Navigation">
-      <div id="toc"></div>
-      <div id="doc-list"></div>
+    <nav class="sidebar" id="sidebar" aria-label="Navigation">
+      <div class="pane-head">
+        <strong>Navigation</strong>
+        <button class="pane-x" id="nav-collapse" title="Collapse navigation">◀</button>
+      </div>
+      <div class="sidebar-scroll">
+        <div id="toc"></div>
+        <div id="doc-list"></div>
+        <div id="figures"></div>
+      </div>
     </nav>
+    <div class="vresizer" id="nav-resizer" title="Drag to resize"></div>
 
     <section class="doc-pane">
       <div class="format-bar" id="format-bar" hidden>
@@ -66,6 +72,7 @@
             <div class="doc-positioner" id="doc-positioner">
               <article class="doc" id="doc"></article>
               <div class="overlay" id="overlay"></div>
+              <div class="bookmark-marker" id="bookmark-marker" hidden>🔖<span class="bm-del" id="bm-del" title="Delete bookmark">✕</span></div>
             </div>
           </div>
         </div>
@@ -86,6 +93,7 @@
       </div>
     </section>
 
+    <div class="vresizer" id="cmt-resizer" title="Drag to resize"></div>
     <aside class="comments-pane" id="comments-pane" aria-label="Comments">
       <div class="comments-head">
         <strong>Comments</strong>
@@ -93,10 +101,32 @@
           <button data-filter="open" class="active">Open</button>
           <button data-filter="all">All</button>
         </div>
+        <button class="pane-x" id="cmt-collapse" title="Collapse comments">▶</button>
       </div>
       <div id="comments-list"></div>
     </aside>
+    <button class="popout popout-nav" id="popout-nav" title="Show navigation" hidden>☰ Nav</button>
+    <button class="popout popout-cmt" id="popout-cmt" title="Show comments" hidden>💬 Comments</button>
   </main>
+
+  <!-- figure lightbox -->
+  <div class="lightbox" id="lightbox" hidden>
+    <img id="lightbox-img" alt="" />
+    <div class="lightbox-cap" id="lightbox-cap"></div>
+  </div>
+
+  <!-- reference editor -->
+  <div class="setup-backdrop" id="ref-editor-backdrop" hidden>
+    <div class="setup">
+      <h2>Edit reference <span id="ref-editor-key"></span></h2>
+      <p class="setup-hint">Raw BibTeX. Saving writes back to your references.bib.</p>
+      <textarea id="ref-editor-text" class="setup-textarea" spellcheck="false" style="min-height:180px; white-space:pre;"></textarea>
+      <div class="setup-actions">
+        <button id="ref-editor-cancel" class="ghost">Cancel</button>
+        <button id="ref-editor-save" class="primary">Save to .bib</button>
+      </div>
+    </div>
+  </div>
 
   <!-- comment composer -->
   <div class="composer-backdrop" id="composer-backdrop" hidden>
@@ -184,6 +214,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=14"></script>
+  <script src="/app.js?v=15"></script>
 </body>
 </html>

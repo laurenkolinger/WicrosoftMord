@@ -370,6 +370,85 @@ def parse_bib():
     return refs
 
 
+def _bib_citekey(bibtex):
+    """Return the citekey (token after the opening brace, before the first comma)."""
+    m = re.search(r"@\w+\s*\{\s*([^,\s{}]+)", bibtex or "")
+    return m.group(1).strip() if m else ""
+
+
+def _entry_span(text, key):
+    """Locate the [start, end) span of the @type{key, ... } block in text.
+
+    Finds "@...{KEY," at a line start, then brace-matches from the entry's
+    opening "{" to its matching "}". Returns None if not found.
+    """
+    pat = re.compile(r"@\w+\s*\{\s*" + re.escape(key) + r"\s*,", re.S)
+    for m in pat.finditer(text):
+        # Confirm the citekey matches exactly (token before first comma).
+        if _bib_citekey(text[m.start():m.start() + (m.end() - m.start())]) != key:
+            continue
+        brace = text.find("{", m.start())
+        if brace < 0:
+            continue
+        depth = 0
+        i = brace
+        while i < len(text):
+            ch = text[i]
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    return (m.start(), i + 1)
+            i += 1
+    return None
+
+
+def get_bib_entry(key):
+    """Return the verbatim "@type{KEY, ... }" block from the active .bib, or ""."""
+    path = find_bib()
+    if not path:
+        return ""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            text = fh.read()
+    except Exception:
+        return ""
+    span = _entry_span(text, key)
+    if not span:
+        return ""
+    return text[span[0]:span[1]]
+
+
+def save_bib_entry(key, bibtex):
+    """Validate and persist a raw BibTeX entry in the active .bib.
+
+    Replaces the existing entry whose citekey == key; appends if absent.
+    Returns the citekey parsed from the saved bibtex.
+    """
+    bibtex = bibtex or ""
+    stripped = bibtex.lstrip()
+    citekey = _bib_citekey(bibtex)
+    if not stripped or not stripped.startswith("@") or not citekey:
+        raise ValueError("invalid BibTeX entry")
+    path = find_bib()
+    if not path:
+        raise ValueError("no references.bib in this project")
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            text = fh.read()
+    except Exception:
+        text = ""
+    span = _entry_span(text, key)
+    if span:
+        new_text = text[:span[0]] + bibtex + text[span[1]:]
+    else:
+        sep = "" if (not text or text.endswith("\n\n")) else ("\n" if text.endswith("\n") else "\n\n")
+        new_text = text + sep + "\n" + bibtex if text else bibtex
+    atomic_write(path, new_text)
+    return citekey
+
+
 # --------------------------------------------------------------------------- #
 # Comments  (one JSON file per comment -> UI and Claude never clobber)
 # --------------------------------------------------------------------------- #
@@ -559,6 +638,9 @@ class Handler(BaseHTTPRequestHandler):
                 rel = (self._query().get("path") or [""])[0]
                 full = safe_join(docs_root(), rel)
                 return self._send(200, {"path": rel, "content": read_doc(rel), "mtime": os.path.getmtime(full)})
+            if path == "/api/ref":
+                key = (self._query().get("key") or [""])[0]
+                return self._send(200, {"ok": True, "key": key, "bibtex": get_bib_entry(key)})
             if path == "/api/media":
                 return self._serve_media((self._query().get("path") or [""])[0])
             if path == "/api/download":
@@ -595,6 +677,10 @@ class Handler(BaseHTTPRequestHandler):
                 if path == "/api/doc/save":
                     data = self._body_json()
                     return self._send(200, {"ok": True, "mtime": write_doc(data.get("path", ""), data.get("content", ""))})
+                if path == "/api/ref":
+                    data = self._body_json()
+                    saved_key = save_bib_entry(data.get("key", ""), data.get("bibtex", ""))
+                    return self._send(200, {"ok": True, "key": saved_key})
                 if path == "/api/styles/add":
                     return self._send(200, add_style(self._body_json().get("path", "")))
                 if path == "/api/import":
