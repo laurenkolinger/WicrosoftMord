@@ -5,9 +5,17 @@ description: Address reviewer comments left in the Redline review UI. Reads open
 
 # Redline — addressing review comments
 
-You are collaborating with a human who reviews your writing in the **Redline** web app.
+You are collaborating with a human who reviews your writing in the **Redline / WicrosoftMord** web app.
 They highlight text and leave comments. Those comments are plain JSON files on disk.
 Your job: work the open comments, edit the documents, and write back — so the loop turns.
+
+## FIRST, every pass: read the standing directions
+
+Before doing anything else, read **`.redline/instructions.md`** if it exists. It holds the user's
+standing house-style rules set in Setup (for example: "no em dashes", spelling, voice, tone, which
+resources to cite). **Obey it in every edit, reply, and draft** — it overrides your defaults. If a rule
+says no em dashes, use commas, colons, or parentheses instead, and remove any em dashes you would add.
+These directions apply even when no comment mentions them.
 
 ## The contract (files in the project)
 

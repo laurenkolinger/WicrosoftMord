@@ -1,7 +1,10 @@
-# Redline is active in this project
+# WicrosoftMord (Redline) is active in this project
 
-A human is reviewing documents in the **Redline** web app and leaving comments for you.
+A human is reviewing documents in the **WicrosoftMord** web app and leaving comments for you.
 
+- **Standing directions**: ALWAYS read **`.redline/instructions.md`** first (the user's house-style
+  rules set in Setup — e.g. "no em dashes", spelling, voice, which resources to cite) and obey it in
+  every edit, reply, and draft. It overrides your defaults and applies even when no comment mentions it.
 - **Documents** under review live in the `docsDir` set in `.redline/config.json` (default `docs/`),
   as Markdown. Markdown is the source of truth; the final artifact is **.docx** (exported via pandoc).
 - **Comments** are JSON files in `.redline/comments/`. Each has `file`, `quote`, `body`, and `status`.

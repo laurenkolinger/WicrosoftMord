@@ -38,6 +38,21 @@ lets you type directly into the document.
 
 ---
 
+## Setup screen (folder + your directions)
+
+WicrosoftMord opens a **⚙ Setup** screen on first launch (reopen anytime via ⚙ or the 📁 folder chip):
+
+- **Working folder** — browse and pick the folder WicrosoftMord reads/writes (no terminal). Its absolute
+  path is shown with a **Copy** button, so you can paste it to Claude and point the loop at the same place.
+  If you don't pick one, it defaults to a stable `~/WicrosoftMord/workspace` folder.
+- **Project title** — what shows in the header.
+- **Base directions for Claude** — your standing house-style rules (e.g. *"No em dashes; use commas or
+  parentheses. Active voice. British spelling. Cite only from references.bib."*). These are saved to
+  `.redline/instructions.md`, which Claude reads **first on every pass** and obeys in every edit and draft —
+  even when no comment mentions them.
+
+---
+
 ## Quick start (terminal, optional)
 
 ### 1. Get the tool

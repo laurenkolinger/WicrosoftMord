@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-Redline — a portable, file-backed document review surface.
+WicrosoftMord — a portable, file-backed document review surface.
 
-The server never talks to Claude. It only reads/writes plain files inside a
-project's `.redline/` directory. Claude (running on the host) reads those same
-files, edits the documents, and writes replies back. The browser polls and
-live-updates. Filesystem = message bus, so it works across any project.
+The server never talks to Claude. It only reads/writes plain files inside the
+*active project's* `.redline/` directory. Claude reads those same files, edits
+the documents, and writes replies back. The browser polls and live-updates.
 
-Stdlib only. Optional: `pandoc` on PATH enables Markdown -> .docx export
-(with linked citations via --citeproc).
+The active project folder is chosen IN THE UI (folder picker) and persisted, so
+you point WicrosoftMord at any folder without touching a terminal. Its absolute
+path is shown in the window so you can copy it and tell Claude where to loop.
+
+Stdlib only. Optional: `pandoc` on PATH enables Markdown -> .docx export.
 """
 
 import json
@@ -25,46 +27,126 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+HOME = os.path.expanduser("~")
 
 WEB_DIR = os.environ.get("REDLINE_WEB", os.path.join(ROOT, "web"))
-DATA_DIR = os.path.abspath(
-    os.environ.get("REDLINE_DATA", os.path.join(os.getcwd(), ".redline"))
-)
-PROJECT_DIR = os.path.dirname(DATA_DIR)
 PORT = int(os.environ.get("REDLINE_PORT", "8787"))
 HOST = os.environ.get("REDLINE_HOST", "0.0.0.0")
 
-COMMENTS_DIR = os.path.join(DATA_DIR, "comments")
-EXPORTS_DIR = os.path.join(DATA_DIR, "exports")
-CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
+ACTIVE_FILE = os.path.join(ROOT, ".wmord-active.json")   # remembers the chosen folder
+DEFAULT_WORKSPACE = os.path.join(ROOT, "workspace")       # stable scratch default
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff", ".pdf"}
 _lock = threading.Lock()
+
+# The single mutable piece of server state: which project folder is active.
+_active = {"project": None}
+
+
+# --------------------------------------------------------------------------- #
+# Active project (chosen in the UI, persisted)
+# --------------------------------------------------------------------------- #
+def init_active():
+    saved = None
+    try:
+        with open(ACTIVE_FILE, "r", encoding="utf-8") as fh:
+            saved = json.load(fh).get("project")
+    except Exception:
+        saved = None
+    env_data = os.environ.get("REDLINE_DATA")
+    if saved and os.path.isdir(saved):
+        _active["project"] = os.path.abspath(saved)
+    elif env_data:
+        _active["project"] = os.path.dirname(os.path.abspath(env_data))
+    else:
+        os.makedirs(DEFAULT_WORKSPACE, exist_ok=True)
+        _active["project"] = DEFAULT_WORKSPACE
+    ensure_dirs()
+
+
+def set_project(path):
+    full = os.path.abspath(os.path.expanduser(path or ""))
+    if not full.startswith(HOME):
+        raise ValueError("choose a folder inside your home directory")
+    os.makedirs(full, exist_ok=True)
+    _active["project"] = full
+    try:
+        atomic_write(ACTIVE_FILE, json.dumps({"project": full}, indent=2))
+    except Exception:
+        pass
+    ensure_dirs()
+    return full
+
+
+def project_dir():
+    return _active["project"]
+
+
+def data_dir():
+    return os.path.join(project_dir(), ".redline")
+
+
+def comments_dir():
+    return os.path.join(data_dir(), "comments")
+
+
+def exports_dir():
+    return os.path.join(data_dir(), "exports")
+
+
+def config_path():
+    return os.path.join(data_dir(), "config.json")
 
 
 # --------------------------------------------------------------------------- #
 # Storage helpers
 # --------------------------------------------------------------------------- #
 def ensure_dirs():
-    os.makedirs(COMMENTS_DIR, exist_ok=True)
-    os.makedirs(EXPORTS_DIR, exist_ok=True)
-    if not os.path.exists(CONFIG_PATH):
-        atomic_write(CONFIG_PATH, json.dumps(default_config(), indent=2))
+    os.makedirs(comments_dir(), exist_ok=True)
+    os.makedirs(exports_dir(), exist_ok=True)
+    if not os.path.exists(config_path()):
+        atomic_write(config_path(), json.dumps(default_config(), indent=2))
 
 
 def default_config():
-    return {"title": os.path.basename(PROJECT_DIR) or "Redline", "docsDir": "docs"}
+    return {"title": os.path.basename(project_dir()) or "WicrosoftMord", "docsDir": "docs"}
 
 
 def load_config():
     try:
-        with open(CONFIG_PATH, "r", encoding="utf-8") as fh:
+        with open(config_path(), "r", encoding="utf-8") as fh:
             cfg = json.load(fh)
     except Exception:
         cfg = {}
     base = default_config()
     base.update(cfg or {})
     return base
+
+
+def instructions_path():
+    return os.path.join(data_dir(), "instructions.md")
+
+
+def load_instructions():
+    """Standing directions the user set in Setup (house style, resources, rules)."""
+    try:
+        with open(instructions_path(), "r", encoding="utf-8") as fh:
+            return fh.read()
+    except Exception:
+        return ""
+
+
+def save_settings(data):
+    cfg = load_config()
+    if isinstance(data.get("title"), str) and data["title"].strip():
+        cfg["title"] = data["title"].strip()
+    if isinstance(data.get("docsDir"), str) and data["docsDir"].strip():
+        cfg["docsDir"] = data["docsDir"].strip()
+    ensure_dirs()
+    atomic_write(config_path(), json.dumps(cfg, indent=2))
+    if "instructions" in data:
+        atomic_write(instructions_path(), data.get("instructions") or "")
+    return {"ok": True}
 
 
 def atomic_write(path, text):
@@ -76,14 +158,13 @@ def atomic_write(path, text):
 
 def docs_root():
     cfg = load_config()
-    candidate = os.path.abspath(os.path.join(PROJECT_DIR, cfg.get("docsDir") or "docs"))
+    candidate = os.path.abspath(os.path.join(project_dir(), cfg.get("docsDir") or "docs"))
     if os.path.isdir(candidate):
         return candidate
-    return PROJECT_DIR
+    return project_dir()
 
 
 def safe_join(base, rel):
-    """Join rel onto base, refusing to escape base."""
     rel = (rel or "").lstrip("/")
     target = os.path.abspath(os.path.join(base, rel))
     if target != base and not target.startswith(base + os.sep):
@@ -97,6 +178,29 @@ def gen_id():
 
 def now_iso():
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+
+
+# --------------------------------------------------------------------------- #
+# Folder browser (for the in-app folder picker)
+# --------------------------------------------------------------------------- #
+def list_dirs(path):
+    base = os.path.abspath(os.path.expanduser(path or HOME))
+    if not base.startswith(HOME):
+        base = HOME
+    if not os.path.isdir(base):
+        base = HOME
+    dirs = []
+    try:
+        for name in sorted(os.listdir(base), key=str.lower):
+            if name.startswith("."):
+                continue
+            full = os.path.join(base, name)
+            if os.path.isdir(full):
+                dirs.append(name)
+    except PermissionError:
+        pass
+    parent = os.path.dirname(base) if base != HOME else None
+    return {"path": base, "parent": parent, "home": HOME, "dirs": dirs}
 
 
 # --------------------------------------------------------------------------- #
@@ -151,16 +255,16 @@ def write_doc(rel, content):
 # Bibliography (lightweight .bib parse, for clickable preview citations)
 # --------------------------------------------------------------------------- #
 def find_bib():
-    for base in (docs_root(), PROJECT_DIR):
-        for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
+    for base in (docs_root(), project_dir()):
+        for name in (sorted(os.listdir(base)) if os.path.isdir(base) else []):
             if name.lower().endswith(".bib"):
                 return os.path.join(base, name)
     return None
 
 
 def find_csl():
-    for base in (docs_root(), PROJECT_DIR):
-        for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
+    for base in (docs_root(), project_dir()):
+        for name in (sorted(os.listdir(base)) if os.path.isdir(base) else []):
             if name.lower().endswith(".csl"):
                 return os.path.join(base, name)
     return None
@@ -187,10 +291,7 @@ def parse_bib():
         year = fields.get("year", "")
         label = f"{first_author} {year}".strip() or key
         refs.append({
-            "key": key,
-            "label": label,
-            "author": author,
-            "year": year,
+            "key": key, "label": label, "author": author, "year": year,
             "title": fields.get("title", ""),
             "journal": fields.get("journal", fields.get("booktitle", "")),
         })
@@ -202,13 +303,14 @@ def parse_bib():
 # --------------------------------------------------------------------------- #
 def list_comments():
     out = []
-    if not os.path.isdir(COMMENTS_DIR):
+    cdir = comments_dir()
+    if not os.path.isdir(cdir):
         return out
-    for name in os.listdir(COMMENTS_DIR):
+    for name in os.listdir(cdir):
         if not name.endswith(".json"):
             continue
         try:
-            with open(os.path.join(COMMENTS_DIR, name), "r", encoding="utf-8") as fh:
+            with open(os.path.join(cdir, name), "r", encoding="utf-8") as fh:
                 out.append(json.load(fh))
         except Exception:
             continue
@@ -217,15 +319,14 @@ def list_comments():
 
 
 def write_comment(comment):
-    path = os.path.join(COMMENTS_DIR, f"{comment['id']}.json")
+    path = os.path.join(comments_dir(), f"{comment['id']}.json")
     atomic_write(path, json.dumps(comment, indent=2))
     return comment
 
 
 def create_comment(data):
-    cid = gen_id()
     comment = {
-        "id": cid,
+        "id": gen_id(),
         "file": data.get("file", ""),
         "quote": data.get("quote", ""),
         "prefix": data.get("prefix", ""),
@@ -242,7 +343,7 @@ def create_comment(data):
 
 
 def update_comment(cid, action, payload):
-    path = os.path.join(COMMENTS_DIR, f"{cid}.json")
+    path = os.path.join(comments_dir(), f"{cid}.json")
     if action == "delete":
         if os.path.exists(path):
             os.remove(path)
@@ -266,7 +367,6 @@ def update_comment(cid, action, payload):
         c.setdefault("thread", []).append(
             {"author": "user", "text": payload.get("text", ""), "at": now_iso()}
         )
-        # a user reply re-opens the conversation so Claude re-engages next pass
         c["status"] = "open"
         c["acknowledged"] = False
     return write_comment(c)
@@ -278,12 +378,12 @@ def update_comment(cid, action, payload):
 def export_docx(rel):
     pandoc = shutil.which("pandoc")
     if not pandoc:
-        return {"ok": False, "error": "pandoc is not installed in this environment. "
-                                       "The Docker image includes it; or `brew install pandoc`."}
+        return {"ok": False, "error": "pandoc is not installed. The Docker image includes it; "
+                                       "or `brew install pandoc`."}
     src = safe_join(docs_root(), rel)
     src_dir = os.path.dirname(src)
     base = os.path.splitext(os.path.basename(rel))[0]
-    out = os.path.join(EXPORTS_DIR, f"{base}.docx")
+    out = os.path.join(exports_dir(), f"{base}.docx")
     cmd = [pandoc, src, "-o", out, "--standalone",
            "--resource-path", src_dir + os.pathsep + docs_root()]
     bib = find_bib()
@@ -306,12 +406,11 @@ def export_docx(rel):
 # HTTP
 # --------------------------------------------------------------------------- #
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Redline/1.0"
+    server_version = "WicrosoftMord/1.0"
 
-    def log_message(self, *args):
+    def log_message(self, *_):
         pass
 
-    # -- helpers ----------------------------------------------------------- #
     def _send(self, code, body, ctype="application/json", extra=None):
         if isinstance(body, (dict, list)):
             body = json.dumps(body).encode("utf-8")
@@ -339,7 +438,6 @@ class Handler(BaseHTTPRequestHandler):
     def _query(self):
         return urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
 
-    # -- routing ----------------------------------------------------------- #
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
         try:
@@ -350,13 +448,17 @@ class Handler(BaseHTTPRequestHandler):
                     "comments": list_comments(),
                     "references": parse_bib(),
                     "pandoc": bool(shutil.which("pandoc")),
-                    "projectDir": PROJECT_DIR,
+                    "project": project_dir(),
+                    "instructions": load_instructions(),
                 })
+            if path == "/api/project":
+                return self._send(200, {"project": project_dir()})
+            if path == "/api/fs/list":
+                return self._send(200, list_dirs((self._query().get("path") or [HOME])[0]))
             if path == "/api/doc":
                 rel = (self._query().get("path") or [""])[0]
                 full = safe_join(docs_root(), rel)
-                return self._send(200, {"path": rel, "content": read_doc(rel),
-                                        "mtime": os.path.getmtime(full)})
+                return self._send(200, {"path": rel, "content": read_doc(rel), "mtime": os.path.getmtime(full)})
             if path == "/api/media":
                 return self._serve_media((self._query().get("path") or [""])[0])
             if path == "/api/download":
@@ -376,6 +478,10 @@ class Handler(BaseHTTPRequestHandler):
         path = urllib.parse.urlparse(self.path).path
         try:
             with _lock:
+                if path == "/api/project/set":
+                    return self._send(200, {"ok": True, "project": set_project(self._body_json().get("path", ""))})
+                if path == "/api/settings":
+                    return self._send(200, save_settings(self._body_json()))
                 if path == "/api/comments":
                     return self._send(200, create_comment(self._body_json()))
                 m = re.match(r"^/api/comments/([\w]+)$", path)
@@ -395,7 +501,6 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:
             return self._send(500, {"error": str(exc)})
 
-    # -- static / media ---------------------------------------------------- #
     def _serve_static(self, path):
         if path in ("/", ""):
             path = "/index.html"
@@ -432,7 +537,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(data)
 
     def _serve_download(self, rel):
-        full = safe_join(EXPORTS_DIR, rel)
+        full = safe_join(exports_dir(), rel)
         if not os.path.isfile(full):
             return self._send(404, {"error": "not found"})
         with open(full, "rb") as fh:
@@ -447,12 +552,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    ensure_dirs()
+    init_active()
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"Redline running on http://localhost:{PORT}")
-    print(f"  project : {PROJECT_DIR}")
+    print(f"WicrosoftMord running on http://localhost:{PORT}")
+    print(f"  project : {project_dir()}")
     print(f"  docs    : {docs_root()}")
-    print(f"  data    : {DATA_DIR}")
     print(f"  pandoc  : {'yes' if shutil.which('pandoc') else 'no (docx export disabled)'}")
     try:
         httpd.serve_forever()

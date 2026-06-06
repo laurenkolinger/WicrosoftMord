@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=4" />
+  <link rel="stylesheet" href="/styles.css?v=5" />
 </head>
 <body>
   <header class="topbar">
@@ -12,9 +12,11 @@
       <span class="dot"></span>
       <span id="project-title">WicrosoftMord</span>
     </div>
+    <button class="folder-chip" id="folder-chip" title="Working folder — click for Setup">📁 …</button>
     <div class="status" id="status">connecting…</div>
     <span class="save-status" id="save-status"></span>
     <div class="controls">
+      <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
@@ -69,8 +71,48 @@
     </div>
   </div>
 
+  <!-- Setup -->
+  <div class="setup-backdrop" id="setup-backdrop" hidden>
+    <div class="setup">
+      <h2>WicrosoftMord setup</h2>
+
+      <label class="setup-label">Working folder</label>
+      <p class="setup-hint">The folder WicrosoftMord reads and writes. Copy this path and give it to Claude so its review loop watches the same place.</p>
+      <div class="folder-row">
+        <code id="setup-folder-path">…</code>
+        <button id="setup-copy-path" class="ghost" title="Copy path for Claude">Copy</button>
+        <button id="setup-change-folder" class="ghost">Change…</button>
+      </div>
+
+      <div class="folder-browser" id="folder-browser" hidden>
+        <div class="fb-path" id="fb-path"></div>
+        <div class="fb-list" id="fb-list"></div>
+        <div class="fb-manual">
+          <input id="fb-manual-input" placeholder="…or paste a full path and press Use" />
+          <button id="fb-use" class="primary">Use this folder</button>
+        </div>
+      </div>
+
+      <label class="setup-label">Project title</label>
+      <input id="setup-title" class="setup-input" placeholder="e.g. Bleaching manuscript" />
+
+      <label class="setup-label">Base directions for Claude</label>
+      <p class="setup-hint">Standing house-style rules. Claude reads these and follows them in every edit and draft.</p>
+      <textarea id="setup-instructions" class="setup-textarea" placeholder="e.g.
+No em dashes; use commas, colons, or parentheses instead.
+Active voice. British spelling.
+Cite only from references.bib.
+Measured, academic tone; no hype words."></textarea>
+
+      <div class="setup-actions">
+        <button id="setup-cancel" class="ghost">Close</button>
+        <button id="setup-save" class="primary">Save</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=4"></script>
+  <script src="/app.js?v=5"></script>
 </body>
 </html>
