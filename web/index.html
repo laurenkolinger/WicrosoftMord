@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=12" />
+  <link rel="stylesheet" href="/styles.css?v=13" />
 </head>
 <body>
   <header class="topbar">
@@ -19,19 +19,26 @@
     <span class="activity" id="activity" hidden></span>
     <button class="newchanges" id="newchanges" hidden title="Claude updated this document">✶ New changes from Claude</button>
     <div class="controls">
+      <button id="toggle-nav" title="Hide / show the navigation pane">☰</button>
       <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
       <button id="refs-toggle" title="Split off a References panel">▦ Refs</button>
+      <button id="bookmark-btn" title="Bookmark where you stopped reviewing">🔖</button>
+      <button id="resume-btn" title="Jump to your bookmark" hidden>⤴ Resume</button>
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
       <button id="theme-toggle" title="Toggle light / dark">◐</button>
       <button id="wire-btn" title="Copy the command that connects this to Claude">⌁ Wire to Claude</button>
       <button id="export-btn" title="Export current document to .docx">Export .docx</button>
+      <button id="toggle-comments" title="Hide / show the comments pane">▤</button>
     </div>
   </header>
 
   <main class="layout">
-    <nav class="sidebar" id="doc-list" aria-label="Documents"></nav>
+    <nav class="sidebar" aria-label="Navigation">
+      <div id="toc"></div>
+      <div id="doc-list"></div>
+    </nav>
 
     <section class="doc-pane">
       <div class="format-bar" id="format-bar" hidden>
@@ -47,6 +54,11 @@
         <button data-cmd="insertOrderedList" title="Numbered list">1.</button>
         <button data-block="BLOCKQUOTE" title="Quote">❝</button>
         <button data-link title="Add link">🔗</button>
+        <span class="fb-sep"></span>
+        <button data-hl="hl-yellow" class="hlbtn hl-yellow" title="Highlight (yellow)"></button>
+        <button data-hl="hl-green" class="hlbtn hl-green" title="Highlight (green)"></button>
+        <button data-hl="hl-pink" class="hlbtn hl-pink" title="Highlight (pink)"></button>
+        <button data-unhl title="Remove highlight">🚫</button>
       </div>
       <div class="workspace" id="workspace" data-split="none">
         <div class="pane pane-doc" id="pane-doc">
@@ -172,6 +184,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=12"></script>
+  <script src="/app.js?v=13"></script>
 </body>
 </html>
