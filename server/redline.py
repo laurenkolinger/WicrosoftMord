@@ -36,7 +36,13 @@ WEB_DIR = os.environ.get("REDLINE_WEB", os.path.join(ROOT, "web"))
 STYLES_DIR = os.path.join(ROOT, "styles")        # bundled CSL reference styles
 TEMPLATES_DIR = os.path.join(ROOT, "templates")  # bundled .docx reference templates
 PORT = int(os.environ.get("REDLINE_PORT", "8787"))
-HOST = os.environ.get("REDLINE_HOST", "0.0.0.0")
+HOST = os.environ.get("REDLINE_HOST", "127.0.0.1")   # local-only by default; Docker opts into 0.0.0.0
+LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1")
+
+
+def within_home(p):
+    """True only if p is HOME or strictly inside it (trailing-separator safe)."""
+    return p == HOME or p.startswith(HOME + os.sep)
 
 ACTIVE_FILE = os.path.join(ROOT, ".wmord-active.json")   # remembers the chosen folder
 DEFAULT_WORKSPACE = os.path.join(ROOT, "workspace")       # stable scratch default
@@ -72,8 +78,8 @@ def init_active():
 
 
 def set_project(path):
-    full = os.path.abspath(os.path.expanduser(path or ""))
-    if not full.startswith(HOME):
+    full = os.path.realpath(os.path.expanduser(path or ""))
+    if not within_home(full):
         raise ValueError("choose a folder inside your home directory")
     os.makedirs(full, exist_ok=True)
     _active["project"] = full
@@ -183,8 +189,11 @@ def list_styles():
 
 
 def add_style(path):
-    src = os.path.abspath(os.path.expanduser(path or ""))
-    if not src.startswith(HOME):
+    expanded = os.path.expanduser(path or "")
+    if os.path.islink(expanded):
+        raise ValueError("symlinks are not allowed")
+    src = os.path.realpath(expanded)          # resolves any symlinks in parent dirs too
+    if not within_home(src):
         raise ValueError("choose a .csl file inside your home directory")
     if not src.lower().endswith(".csl") or not os.path.isfile(src):
         raise ValueError("not a .csl file")
@@ -210,9 +219,11 @@ def docs_root():
 
 
 def safe_join(base, rel):
+    """Join rel onto base and confine via realpath, so symlinks can't escape."""
     rel = (rel or "").lstrip("/")
-    target = os.path.abspath(os.path.join(base, rel))
-    if target != base and not target.startswith(base + os.sep):
+    base_real = os.path.realpath(base)
+    target = os.path.realpath(os.path.join(base_real, rel))
+    if target != base_real and not target.startswith(base_real + os.sep):
         raise ValueError("path escapes base")
     return target
 
@@ -229,10 +240,8 @@ def now_iso():
 # Folder browser (for the in-app folder picker)
 # --------------------------------------------------------------------------- #
 def list_dirs(path):
-    base = os.path.abspath(os.path.expanduser(path or HOME))
-    if not base.startswith(HOME):
-        base = HOME
-    if not os.path.isdir(base):
+    base = os.path.realpath(os.path.expanduser(path or HOME))
+    if not within_home(base) or not os.path.isdir(base):
         base = HOME
     dirs = []
     try:
@@ -240,11 +249,13 @@ def list_dirs(path):
             if name.startswith("."):
                 continue
             full = os.path.join(base, name)
-            if os.path.isdir(full):
+            if os.path.isdir(full) and not os.path.islink(full):
                 dirs.append(name)
     except PermissionError:
         pass
     parent = os.path.dirname(base) if base != HOME else None
+    if parent and not within_home(parent):
+        parent = None
     return {"path": base, "parent": parent, "home": HOME, "dirs": dirs}
 
 
@@ -495,8 +506,22 @@ class Handler(BaseHTTPRequestHandler):
     def _query(self):
         return urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
 
+    def _host_ok(self):
+        if HOST == "0.0.0.0":
+            return True   # broad bind is an explicit opt-in (Docker); skip the guard
+        host = (self.headers.get("Host") or "").split(":")[0]
+        return host in LOCAL_HOSTS or host == HOST   # blocks DNS-rebinding
+
+    def _origin_ok(self):
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        return (urllib.parse.urlparse(origin).hostname or "") in LOCAL_HOSTS   # blocks cross-site POST
+
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
+        if not self._host_ok():
+            return self._send(403, {"error": "forbidden host"})
         try:
             if path == "/api/state":
                 return self._send(200, {
@@ -527,14 +552,16 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "not found"})
         except ValueError as exc:
             return self._send(400, {"error": str(exc)})
-        except Exception as exc:
-            return self._send(500, {"error": str(exc)})
+        except Exception:
+            return self._send(500, {"error": "internal error"})
 
     def do_HEAD(self):
         self.do_GET()
 
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
+        if not self._host_ok() or not self._origin_ok():
+            return self._send(403, {"error": "forbidden origin"})
         try:
             with _lock:
                 if path == "/api/project/set":
@@ -561,12 +588,15 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "not found"})
         except ValueError as exc:
             return self._send(400, {"error": str(exc)})
-        except Exception as exc:
-            return self._send(500, {"error": str(exc)})
+        except Exception:
+            return self._send(500, {"error": "internal error"})
 
     def _import_docx(self, path):
-        src = os.path.abspath(os.path.expanduser(path or ""))
-        if not src.startswith(HOME):
+        expanded = os.path.expanduser(path or "")
+        if os.path.islink(expanded):
+            raise ValueError("symlinks are not allowed")
+        src = os.path.realpath(expanded)
+        if not within_home(src):
             raise ValueError("choose a .docx inside your home directory")
         if not src.lower().endswith(".docx") or not os.path.isfile(src):
             raise ValueError("not a .docx file")
