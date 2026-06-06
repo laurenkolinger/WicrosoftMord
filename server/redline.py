@@ -298,6 +298,21 @@ def read_doc(rel):
         return fh.read()
 
 
+def list_media():
+    """All image files in the project (figures), even ones not referenced inline."""
+    root = docs_root()
+    out = []
+    for dp, dns, fns in os.walk(root):
+        dns[:] = [d for d in dns if not d.startswith(".") and d not in ("node_modules", "exports")]
+        for n in fns:
+            if os.path.splitext(n)[1].lower() in IMAGE_EXTS:
+                out.append(os.path.relpath(os.path.join(dp, n), root).replace(os.sep, "/"))
+        if len(out) > 500:
+            break
+    out.sort()
+    return out[:500]
+
+
 def write_doc(rel, content):
     """Save the document straight back to its Markdown source (the .docx source)."""
     full = safe_join(docs_root(), rel)
@@ -622,6 +637,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {
                     "config": load_config(),
                     "documents": list_documents(),
+                    "media": list_media(),
                     "comments": list_comments(),
                     "references": parse_bib(),
                     "pandoc": bool(shutil.which("pandoc")),
