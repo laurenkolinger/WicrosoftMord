@@ -23,6 +23,4 @@ through.
 
 ## Want to try the loop?
 
-Select this sentence, click 💬, and type something like "tighten this." Then run
-`/loop 45s /redline` in your VS Code Claude Code panel and watch the edit + reply appear.
-Entirely optional, nothing here is required.
+Select a sentence, click the 💬 bubble or press your comment shortcut, and leave a note. Claude revises the text, replies, and the change appears here live. This is optional.
