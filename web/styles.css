@@ -65,6 +65,10 @@ body {
 .activity .pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 6px; animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 select.setup-input { appearance: auto; }
+.newchanges { font-size: 12px; padding: 3px 11px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(47,109,246,.10); color: var(--accent); cursor: pointer; white-space: nowrap; }
+.newchanges:hover { background: rgba(47,109,246,.18); }
+.newchanges.flash { animation: ncflash .9s ease; }
+@keyframes ncflash { 0% { background: var(--accent); color: #fff; } 100% { background: rgba(47,109,246,.10); color: var(--accent); } }
 .controls { margin-left: auto; display: flex; gap: 6px; }
 .controls button {
   border: 1px solid var(--border); background: var(--panel-2); color: var(--text);

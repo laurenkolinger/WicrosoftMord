@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=11" />
+  <link rel="stylesheet" href="/styles.css?v=12" />
 </head>
 <body>
   <header class="topbar">
@@ -17,6 +17,7 @@
     <span class="save-status" id="save-status"></span>
     <span class="wordcount" id="wordcount" title="Word count (press the word-count shortcut on a selection)"></span>
     <span class="activity" id="activity" hidden></span>
+    <button class="newchanges" id="newchanges" hidden title="Claude updated this document">✶ New changes from Claude</button>
     <div class="controls">
       <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
@@ -33,11 +34,6 @@
     <nav class="sidebar" id="doc-list" aria-label="Documents"></nav>
 
     <section class="doc-pane">
-      <div class="conflict-banner" id="conflict-banner" hidden>
-        Claude changed this file while you were editing.
-        <button id="conflict-reload">Load Claude's version</button>
-        <button id="conflict-dismiss" class="ghost">Keep mine</button>
-      </div>
       <div class="format-bar" id="format-bar" hidden>
         <button data-cmd="bold" title="Bold (⌘B)"><b>B</b></button>
         <button data-cmd="italic" title="Italic (⌘I)"><i>I</i></button>
@@ -176,6 +172,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=11"></script>
+  <script src="/app.js?v=12"></script>
 </body>
 </html>
