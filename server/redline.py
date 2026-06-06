@@ -346,10 +346,26 @@ def parse_bib():
         first_author = author.split(" and ")[0].split(",")[0].strip() if author else ""
         year = fields.get("year", "")
         label = f"{first_author} {year}".strip() or key
+        doi = fields.get("doi", "")
+        url = fields.get("url", "")
+        if not url:
+            # `howpublished` sometimes carries the link (e.g. {\url{http://...}})
+            howpub = fields.get("howpublished", "")
+            hm = re.search(r"https?://\S+", howpub)
+            if hm:
+                url = hm.group(0).rstrip("}").rstrip()
+        if doi:
+            clean = re.sub(r"^(https?://doi\.org/|http://dx\.doi\.org/|doi:)", "", doi, flags=re.I).strip()
+            link = "https://doi.org/" + clean
+        elif url:
+            link = url
+        else:
+            link = ""
         refs.append({
             "key": key, "label": label, "author": author, "year": year,
             "title": fields.get("title", ""),
             "journal": fields.get("journal", fields.get("booktitle", "")),
+            "doi": doi, "url": url, "link": link,
         })
     return refs
 

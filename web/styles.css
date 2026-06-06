@@ -113,17 +113,28 @@ select.setup-input { appearance: auto; }
 
 /* ---------- highlights ---------- */
 .doc mark { padding: 0 2px; border-radius: 2px; color: inherit; }
+.doc mark, .doc span[style*="background"] { color: inherit; }
 mark.hl-yellow { background: #fff176; }
 mark.hl-green { background: #a5d6a7; }
-mark.hl-pink { background: #f8bbd0; }
+mark.hl-red { background: #ef9a9a; }
 mark.hl-blue { background: #90caf9; }
 [data-theme="dark"] .doc mark { color: #16181d; }
-.hlbtn { width: 18px; height: 18px; padding: 0; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; }
+.doc.highlighting { cursor: cell; }
+.hlbtn { width: 20px; height: 20px; padding: 0; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; font-size: 11px; }
 .hlbtn.hl-yellow { background: #fff176; }
 .hlbtn.hl-green { background: #a5d6a7; }
-.hlbtn.hl-pink { background: #f8bbd0; }
-.hl.flashing { animation: hlflash 1.6s ease; }
-@keyframes hlflash { 0% { background: var(--accent); } 70% { background: var(--hl-open-strong); } 100% { background: transparent; } }
+.hlbtn.hl-red { background: #ef9a9a; }
+.hlbtn.active { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hl.flashing { animation: hlflash 1.7s ease; }
+@keyframes hlflash { 0% { background: var(--accent); } 60% { background: var(--hl-open-strong); } 100% { background: transparent; } }
+
+/* collapsible Claude response in a comment */
+.claude-toggle { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; padding: 6px 0 2px; }
+.claude-response { display: block; }
+
+/* reference DOI / link */
+.rp-link { color: var(--accent); font-size: 11px; white-space: nowrap; text-decoration: none; }
+.rp-link:hover { text-decoration: underline; }
 
 /* ---------- table of contents ---------- */
 #toc:not(:empty) { border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 6px; }
@@ -224,8 +235,11 @@ mark.hl-blue { background: #90caf9; }
 .doc a { color: var(--accent); }
 .doc ul, .doc ol { margin: 0 0 1em; padding-left: 1.4em; }
 .doc hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
-.doc table { border-collapse: collapse; margin: 1em 0; }
-.doc th, .doc td { border: 1px solid var(--border); padding: 6px 10px; }
+.doc table { border-collapse: collapse; margin: 1.4em 0; width: 100%; display: block; overflow-x: auto; font-size: .92em; border: 1px solid var(--border); border-radius: 8px; }
+.doc thead th { background: var(--panel-2); border-bottom: 2px solid var(--border); font-weight: 650; text-align: left; }
+.doc th, .doc td { border: 1px solid var(--border); padding: 8px 12px; vertical-align: top; line-height: 1.45; }
+.doc tbody tr:nth-child(even) { background: color-mix(in srgb, var(--panel-2) 55%, transparent); }
+.doc tbody tr:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
 .citation { color: var(--accent); cursor: pointer; text-decoration: none; border-bottom: 1px dotted var(--accent); }
 .ref-list { margin-top: 2.5em; border-top: 1px solid var(--border); padding-top: 1em; font-size: .9em; }

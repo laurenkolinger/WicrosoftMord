@@ -1,6 +1,6 @@
 ---
 name: redline
-description: Address reviewer comments left in the Redline review UI. Reads open comments from .redline/comments/, edits the referenced Markdown documents to satisfy each comment, records a before/after revision and a reply, and marks the comment resolved. Run on a loop (`/loop 45s /redline`) for rolling collaboration. Use whenever the user mentions Redline comments, document review feedback, or asks you to "address the comments".
+description: Address reviewer comments left in the Redline review UI. Reads open comments from .redline/comments/, edits the referenced Markdown documents to satisfy each comment, records a before/after revision and a reply, and leaves the comment open for the user to resolve. Run on a loop (`/loop 45s /redline`) for rolling collaboration. Use whenever the user mentions Redline comments, document review feedback, or asks you to "address the comments".
 ---
 
 # Redline — addressing review comments
@@ -39,26 +39,34 @@ These directions apply even when no comment mentions them.
 
 ## Your single pass (this is what `/redline` does)
 
-1. **Read** every file in `.redline/comments/`. Select those with `status == "open"`.
-   If none are open, say "No open comments" and stop. (Idempotent — never re-touch resolved ones.)
+1. **Read** every file in `.redline/comments/`. Select those with `status == "open"` that you have not
+   already addressed — i.e. skip a comment whose latest `thread` entry is already from `claude` and that
+   carries no newer `user` reply after it (you handled it; the user hasn't pushed back yet). If there is
+   nothing new to address, say "No open comments" and stop. (Idempotent — never re-do work you already did;
+   comments stay `open` until the *user* resolves them, so use the thread, not the status, to tell what is
+   done.)
 2. For each open comment, **locate the text**: find `quote` in the named document (use `prefix`/`suffix`
    to disambiguate if the quote appears more than once). The quote is the *rendered* text, so inline
    markdown like `**bold**` or `[@cite]` may surround it in the source — match on the visible words.
 3. **Make the edit** the comment asks for, directly in the Markdown file. Keep it tight and in the
    author's voice. If the comment is a question, answer it in your reply rather than editing.
 4. **Record the result** by overwriting the comment's JSON file with:
-   - `revision`: `{ "before": "<exact old text you changed>", "after": "<exact new text>", "at": "<ISO time>" }`
-     — keep before/after to the changed span (a sentence or two), not the whole document. This drives the
-     red/green diff the human sees.
+   - `revision`: `{ "before": "<exact old text span>", "after": "<exact new text span>", "at": "<ISO time>" }`
+     — BOTH `before` and `after` must be the exact text spans as they appear in the document (plain text,
+     so the UI can locate `after` in the rendered document). Keep them to the changed span (a sentence or
+     two), not the whole document. This drives the red/green diff the human sees.
    - append to `thread`: `{ "author": "claude", "text": "<one line: what you did / why>", "at": "<ISO time>" }`
-   - set `status` to `"resolved"` (or `"wontfix"` with a reason in the thread if you decline — e.g. the
-     change would be factually wrong).
+   - **leave `status` as `"open"`; only the user resolves comments.** NEVER set `status` to `"resolved"`
+     or `"wontfix"`, and never set `acknowledged`. You edit the document and reply; the USER decides when a
+     comment is resolved. If you decline to make a change (e.g. it would be factually wrong), still leave
+     `status` as `"open"` and explain why in your `thread` reply so the user can decide.
    - leave `acknowledged` as-is (the human clears it with "Looks good").
    Write valid JSON. Preserve all other fields. Edit ONLY comment files whose status was `open`.
 5. After the pass, give a 1-line summary: `Addressed N comments in <files>.`
 
-A user reply re-opens a comment (status flips back to `open`), so on the next pass you'll see their
-pushback in `thread` — read the latest user message and respond to it.
+Comments stay `open` throughout; a user reply adds a new `user` entry to `thread`, so on the next pass
+you'll see their pushback — read the latest user message and respond to it (edit + reply again, still
+leaving `status` as `open`). The user is the only one who marks a comment resolved.
 
 ## Rolling mode
 

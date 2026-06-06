@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=13" />
+  <link rel="stylesheet" href="/styles.css?v=14" />
 </head>
 <body>
   <header class="topbar">
@@ -55,10 +55,10 @@
         <button data-block="BLOCKQUOTE" title="Quote">❝</button>
         <button data-link title="Add link">🔗</button>
         <span class="fb-sep"></span>
-        <button data-hl="hl-yellow" class="hlbtn hl-yellow" title="Highlight (yellow)"></button>
-        <button data-hl="hl-green" class="hlbtn hl-green" title="Highlight (green)"></button>
-        <button data-hl="hl-pink" class="hlbtn hl-pink" title="Highlight (pink)"></button>
-        <button data-unhl title="Remove highlight">🚫</button>
+        <button data-hl="hl-yellow" class="hlbtn hl-yellow" title="Highlighter: yellow (toggle, then select)"></button>
+        <button data-hl="hl-green" class="hlbtn hl-green" title="Highlighter: green (toggle, then select)"></button>
+        <button data-hl="hl-red" class="hlbtn hl-red" title="Highlighter: red (toggle, then select)"></button>
+        <button data-unhl class="hlbtn" title="Eraser (toggle, then select)">⌫</button>
       </div>
       <div class="workspace" id="workspace" data-split="none">
         <div class="pane pane-doc" id="pane-doc">
@@ -184,6 +184,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=13"></script>
+  <script src="/app.js?v=14"></script>
 </body>
 </html>
