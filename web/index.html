@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=16" />
+  <link rel="stylesheet" href="/styles.css?v=17" />
 </head>
 <body>
   <header class="topbar">
@@ -41,7 +41,17 @@
       <div class="sidebar-scroll">
         <div id="toc"></div>
         <div id="doc-list"></div>
-        <div id="figures"></div>
+      </div>
+      <div class="sidebar-bottom">
+        <details class="sb-section" id="sb-prompt" open>
+          <summary>⌁ Directions for Claude (global)</summary>
+          <textarea id="global-prompt" class="global-prompt" placeholder="Standing instructions Claude obeys across the whole project and every comment. Add or change on the fly; saved automatically."></textarea>
+          <div class="gp-status" id="gp-status"></div>
+        </details>
+        <details class="sb-section" id="sb-media" open>
+          <summary>🖼 Figures & Tables</summary>
+          <div id="figures"></div>
+        </details>
       </div>
     </nav>
     <div class="vresizer" id="nav-resizer" title="Drag to resize"></div>
@@ -214,6 +224,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=16"></script>
+  <script src="/app.js?v=17"></script>
 </body>
 </html>

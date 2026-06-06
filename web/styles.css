@@ -164,8 +164,18 @@ mark.hl-blue { background: #90caf9; }
 .layout.no-comments #comments-pane, .layout.no-comments #cmt-resizer { display: none; }
 
 /* figure viewer + lightbox */
-#figures:not(:empty) { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px; }
-.fig-thumb { width: 100%; max-height: 90px; object-fit: cover; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; cursor: zoom-in; display: block; }
+/* bottom-left panel: global directions + figure/table viewer */
+.sidebar-bottom { flex: 0 0 auto; max-height: 46%; overflow-y: auto; border-top: 1px solid var(--border); padding: 8px; }
+.sb-section { margin-bottom: 10px; }
+.sb-section > summary { cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 4px 2px; list-style: none; user-select: none; }
+.sb-section > summary::-webkit-details-marker { display: none; }
+.sb-section > summary:hover { color: var(--text); }
+.global-prompt { width: 100%; min-height: 84px; resize: vertical; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); color: var(--text); font-size: 12px; line-height: 1.55; padding: 8px; font-family: ui-monospace, Menlo, monospace; }
+.gp-status { font-size: 11px; color: var(--muted); margin-top: 3px; min-height: 14px; }
+.fig-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.fig-thumb { width: 66px; height: 50px; object-fit: cover; border: 1px solid var(--border); border-radius: 6px; cursor: zoom-in; display: block; background: var(--panel-2); }
+.media-table { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 4px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.media-table:hover { border-color: var(--accent); color: var(--text); }
 .fig-thumb:hover { border-color: var(--accent); }
 .lightbox { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: zoom-out; padding: 24px; }
 .lightbox img { max-width: 94vw; max-height: 82vh; object-fit: contain; border-radius: 6px; background: #fff; }
