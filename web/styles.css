@@ -59,6 +59,12 @@ body {
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 650; }
 .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
 .status { color: var(--muted); font-size: 13px; }
+.wordcount { color: var(--muted); font-size: 12px; }
+.activity { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+.activity.working { border-color: var(--accent); color: var(--accent); }
+.activity .pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 6px; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+select.setup-input { appearance: auto; }
 .controls { margin-left: auto; display: flex; gap: 6px; }
 .controls button {
   border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
@@ -218,6 +224,9 @@ body {
 .badge.open { background: var(--hl-open-strong); color: #5a4300; }
 .badge.resolved { background: var(--ins-bg); color: var(--ins); }
 .badge.wontfix { background: var(--del-bg); color: var(--del); }
+.badge.external { background: var(--panel); color: var(--muted); border: 1px solid var(--border); }
+.card.external { border-style: dashed; }
+.card .author { font-size: 11px; color: var(--muted); font-weight: 700; }
 
 .thread { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 8px; }
 .msg { font-size: 13px; }

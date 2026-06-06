@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=8" />
+  <link rel="stylesheet" href="/styles.css?v=9" />
 </head>
 <body>
   <header class="topbar">
@@ -12,9 +12,11 @@
       <span class="dot"></span>
       <span id="project-title">WicrosoftMord</span>
     </div>
-    <button class="folder-chip" id="folder-chip" title="Working folder — click for Setup">📁 …</button>
+    <button class="folder-chip" id="folder-chip" title="Working folder, click for Setup">📁 …</button>
     <div class="status" id="status">connecting…</div>
     <span class="save-status" id="save-status"></span>
+    <span class="wordcount" id="wordcount" title="Word count (press the word-count shortcut on a selection)"></span>
+    <span class="activity" id="activity" hidden></span>
     <div class="controls">
       <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
@@ -143,6 +145,28 @@ Measured, academic tone; no hype words."></textarea>
       <p class="setup-hint">Select text and press this to comment without leaving the editor. Click, then press your keys.</p>
       <button id="setup-shortcut" class="setup-shortcut">⌥C</button>
 
+      <label class="setup-label">Export: Word template</label>
+      <p class="setup-hint">Basic academic .docx, 12 point.</p>
+      <select id="setup-font" class="setup-input">
+        <option value="">Pandoc default</option>
+        <option value="tnr">Times New Roman, 12 pt</option>
+        <option value="arial">Arial, 12 pt</option>
+      </select>
+
+      <label class="setup-label">Export: reference (citation) style</label>
+      <p class="setup-hint">Used for in-text citations and the bibliography in the .docx.</p>
+      <div class="folder-row">
+        <select id="setup-csl" class="setup-input"></select>
+        <button id="setup-add-csl" class="ghost">Add CSL…</button>
+      </div>
+
+      <label class="setup-label">Import a Word document</label>
+      <p class="setup-hint">Convert a .docx to Markdown and pull in its comments and tracked changes.</p>
+      <div class="folder-row">
+        <input id="setup-import-path" class="setup-input" placeholder="paste a full path to a .docx" />
+        <button id="setup-import" class="ghost">Import</button>
+      </div>
+
       <div class="setup-actions">
         <button id="setup-cancel" class="ghost">Close</button>
         <button id="setup-save" class="primary">Save</button>
@@ -152,6 +176,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=8"></script>
+  <script src="/app.js?v=9"></script>
 </body>
 </html>

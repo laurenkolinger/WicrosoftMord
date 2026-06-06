@@ -21,6 +21,7 @@ import subprocess
 import threading
 import time
 import random
+import sys
 import mimetypes
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -28,13 +29,19 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 HOME = os.path.expanduser("~")
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)   # so we can import sibling modules (docx_import)
 
 WEB_DIR = os.environ.get("REDLINE_WEB", os.path.join(ROOT, "web"))
+STYLES_DIR = os.path.join(ROOT, "styles")        # bundled CSL reference styles
+TEMPLATES_DIR = os.path.join(ROOT, "templates")  # bundled .docx reference templates
 PORT = int(os.environ.get("REDLINE_PORT", "8787"))
 HOST = os.environ.get("REDLINE_HOST", "0.0.0.0")
 
 ACTIVE_FILE = os.path.join(ROOT, ".wmord-active.json")   # remembers the chosen folder
 DEFAULT_WORKSPACE = os.path.join(ROOT, "workspace")       # stable scratch default
+
+DOCX_FONTS = {"tnr": "reference-tnr.docx", "arial": "reference-arial.docx"}
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff", ".pdf"}
 _lock = threading.Lock()
@@ -142,11 +149,49 @@ def save_settings(data):
         cfg["title"] = data["title"].strip()
     if isinstance(data.get("docsDir"), str) and data["docsDir"].strip():
         cfg["docsDir"] = data["docsDir"].strip()
+    if isinstance(data.get("exportFont"), str):
+        cfg["exportFont"] = data["exportFont"]      # "", "tnr", or "arial"
+    if isinstance(data.get("cslStyle"), str):
+        cfg["cslStyle"] = data["cslStyle"]          # a filename in STYLES_DIR, or ""
     ensure_dirs()
     atomic_write(config_path(), json.dumps(cfg, indent=2))
     if "instructions" in data:
         atomic_write(instructions_path(), data.get("instructions") or "")
     return {"ok": True}
+
+
+def activity_path():
+    return os.path.join(data_dir(), "activity.json")
+
+
+def load_activity():
+    """Latest loop status the user sees in the window (written by Claude each pass)."""
+    try:
+        with open(activity_path(), "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        return None
+
+
+def list_styles():
+    out = []
+    if os.path.isdir(STYLES_DIR):
+        for n in sorted(os.listdir(STYLES_DIR)):
+            if n.lower().endswith(".csl"):
+                out.append(n)
+    return out
+
+
+def add_style(path):
+    src = os.path.abspath(os.path.expanduser(path or ""))
+    if not src.startswith(HOME):
+        raise ValueError("choose a .csl file inside your home directory")
+    if not src.lower().endswith(".csl") or not os.path.isfile(src):
+        raise ValueError("not a .csl file")
+    os.makedirs(STYLES_DIR, exist_ok=True)
+    name = os.path.basename(src).replace(" ", "-")
+    shutil.copy(src, os.path.join(STYLES_DIR, name))
+    return {"ok": True, "style": name}
 
 
 def atomic_write(path, text):
@@ -354,8 +399,8 @@ def update_comment(cid, action, payload):
         c = json.load(fh)
     if action == "resolve":
         c["status"] = "resolved"
-    elif action == "reopen":
-        c["status"] = "open"
+    elif action == "reopen" or action == "send":
+        c["status"] = "open"           # "send" passes an imported/external comment to Claude
         c["acknowledged"] = False
     elif action == "wontfix":
         c["status"] = "wontfix"
@@ -380,18 +425,30 @@ def export_docx(rel):
     if not pandoc:
         return {"ok": False, "error": "pandoc is not installed. The Docker image includes it; "
                                        "or `brew install pandoc`."}
+    cfg = load_config()
     src = safe_join(docs_root(), rel)
     src_dir = os.path.dirname(src)
     base = os.path.splitext(os.path.basename(rel))[0]
     out = os.path.join(exports_dir(), f"{base}.docx")
     cmd = [pandoc, src, "-o", out, "--standalone",
            "--resource-path", src_dir + os.pathsep + docs_root()]
+    # academic .docx template (Times New Roman / Arial 12pt), chosen in Setup
+    font = cfg.get("exportFont")
+    if font in DOCX_FONTS:
+        ref = os.path.join(TEMPLATES_DIR, DOCX_FONTS[font])
+        if os.path.isfile(ref):
+            cmd += ["--reference-doc", ref]
     bib = find_bib()
+    used_csl = None
     if bib:
         cmd += ["--citeproc", "--bibliography", bib]
-        csl = find_csl()
-        if csl:
+        chosen = cfg.get("cslStyle")
+        csl = os.path.join(STYLES_DIR, chosen) if chosen else None
+        if not (csl and os.path.isfile(csl)):
+            csl = find_csl()
+        if csl and os.path.isfile(csl):
             cmd += ["--csl", csl]
+            used_csl = os.path.basename(csl)
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     except Exception as exc:
@@ -399,7 +456,7 @@ def export_docx(rel):
     if proc.returncode != 0:
         return {"ok": False, "error": proc.stderr or "pandoc failed"}
     return {"ok": True, "download": "/api/download?path=" + urllib.parse.quote(f"{base}.docx"),
-            "file": f"{base}.docx", "withCitations": bool(bib)}
+            "file": f"{base}.docx", "withCitations": bool(bib), "style": used_csl, "font": font or "default"}
 
 
 # --------------------------------------------------------------------------- #
@@ -450,6 +507,8 @@ class Handler(BaseHTTPRequestHandler):
                     "pandoc": bool(shutil.which("pandoc")),
                     "project": project_dir(),
                     "instructions": load_instructions(),
+                    "styles": list_styles(),
+                    "activity": load_activity(),
                 })
             if path == "/api/project":
                 return self._send(200, {"project": project_dir()})
@@ -493,6 +552,10 @@ class Handler(BaseHTTPRequestHandler):
                 if path == "/api/doc/save":
                     data = self._body_json()
                     return self._send(200, {"ok": True, "mtime": write_doc(data.get("path", ""), data.get("content", ""))})
+                if path == "/api/styles/add":
+                    return self._send(200, add_style(self._body_json().get("path", "")))
+                if path == "/api/import":
+                    return self._send(200, self._import_docx(self._body_json().get("path", "")))
             return self._send(404, {"error": "unknown endpoint"})
         except FileNotFoundError:
             return self._send(404, {"error": "not found"})
@@ -500,6 +563,18 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": str(exc)})
         except Exception as exc:
             return self._send(500, {"error": str(exc)})
+
+    def _import_docx(self, path):
+        src = os.path.abspath(os.path.expanduser(path or ""))
+        if not src.startswith(HOME):
+            raise ValueError("choose a .docx inside your home directory")
+        if not src.lower().endswith(".docx") or not os.path.isfile(src):
+            raise ValueError("not a .docx file")
+        try:
+            from docx_import import import_docx
+        except Exception as exc:
+            return {"ok": False, "error": "docx import module unavailable: " + str(exc)}
+        return import_docx(src, docs_root(), comments_dir())
 
     def _serve_static(self, path):
         if path in ("/", ""):
