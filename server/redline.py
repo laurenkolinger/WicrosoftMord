@@ -525,8 +525,13 @@ def update_comment(cid, action, payload):
         c["acknowledged"] = False
     elif action == "wontfix":
         c["status"] = "wontfix"
-    elif action == "ack":
+    elif action == "ack" or action == "accept":
+        c["acknowledged"] = True       # user accepted/dismissed the inline suggestion
+    elif action == "reject":
         c["acknowledged"] = True
+        c.setdefault("thread", []).append(
+            {"author": "user", "text": "Rejected this change; reverted to the original text.", "at": now_iso()}
+        )
     elif action == "edit":
         c["body"] = payload.get("body", c["body"])
     elif action == "reply":

@@ -328,6 +328,17 @@ mark.hl-blue { background: #90caf9; }
 .revision del { background: var(--del-bg); color: var(--del); text-decoration: line-through; }
 .revision ins { background: var(--ins-bg); color: var(--ins); text-decoration: none; }
 
+/* inline suggestions in the document (track changes) */
+.suggestion { border-radius: 3px; }
+.sugg-del { background: var(--del-bg); color: var(--del); text-decoration: line-through; padding: 0 1px; }
+.sugg-ins { background: var(--ins-bg); color: var(--ins); text-decoration: none; padding: 0 1px; margin-left: 2px; }
+.sugg-actions { display: inline-flex; gap: 2px; margin: 0 3px; vertical-align: middle; white-space: nowrap; }
+.sugg-actions button { border: 1px solid var(--border); background: var(--panel); border-radius: 4px; font-size: 10px; line-height: 1.4; padding: 0 5px; cursor: pointer; }
+.sugg-actions .sugg-acc { color: var(--ins); }
+.sugg-actions .sugg-acc:hover { background: var(--ins-bg); }
+.sugg-actions .sugg-rej { color: var(--del); }
+.sugg-actions .sugg-rej:hover { background: var(--del-bg); }
+
 .card-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .card-actions button { border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 7px; padding: 4px 9px; font-size: 12px; cursor: pointer; }
 .card-actions button:hover { border-color: var(--accent); }
