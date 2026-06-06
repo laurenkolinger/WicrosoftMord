@@ -71,7 +71,35 @@ body {
 .layout { display: grid; grid-template-columns: 230px 1fr 340px; height: calc(100vh - 48px); }
 .sidebar { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 10px 8px; }
 .comments-pane { background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; }
-.doc-pane { position: relative; overflow: hidden; }
+.doc-pane { position: relative; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ---------- split workspace ---------- */
+.workspace { flex: 1; display: flex; min-height: 0; }
+.workspace[data-split="none"] { flex-direction: column; }
+.workspace[data-split="horizontal"] { flex-direction: column; }
+.workspace[data-split="vertical"] { flex-direction: row; }
+.pane { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.pane-doc { flex: 1 1 60%; }
+.workspace[data-split="none"] .pane-doc { flex: 1; }
+.pane-doc .doc-scroll { flex: 1; }
+.pane-refs { flex: 1 1 40%; background: var(--panel); border-top: 1px solid var(--border); }
+.workspace[data-split="vertical"] .pane-refs { border-top: none; border-left: 1px solid var(--border); }
+
+.resizer { flex: 0 0 7px; background: var(--border); position: relative; }
+.workspace[data-split="horizontal"] .resizer { cursor: row-resize; }
+.workspace[data-split="vertical"] .resizer { cursor: col-resize; }
+.resizer:hover { background: var(--accent); }
+.resizer::after { content: ""; position: absolute; inset: -3px; }
+
+.pane-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel-2); font-size: 13px; }
+.pane-head-actions button { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 2px 6px; border-radius: 6px; }
+.pane-head-actions button:hover { background: var(--border); color: var(--text); }
+.refs-panel { flex: 1; overflow-y: auto; padding: 10px 14px; font-size: 13px; }
+.refs-panel .rp-entry { padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; margin-bottom: 4px; line-height: 1.5; cursor: default; }
+.refs-panel .rp-entry:hover { background: var(--panel-2); }
+.refs-panel .rp-entry.flash { background: var(--hl-open); border-color: var(--hl-open-strong); }
+.refs-panel .rp-key { font-weight: 700; color: var(--accent); font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
+#refs-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 .save-status { font-size: 12px; color: var(--muted); min-width: 64px; }
 #edit-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -108,6 +136,13 @@ body {
 }
 .format-bar button:hover { background: var(--panel-2); border-color: var(--border); }
 .fb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+
+/* ---------- setup: segmented + shortcut ---------- */
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: none; background: var(--panel-2); color: var(--muted); padding: 7px 16px; cursor: pointer; font-size: 13px; }
+.seg button.active { background: var(--accent); color: #fff; }
+.setup-shortcut { border: 1px dashed var(--border); background: var(--panel-2); color: var(--text); border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 600; min-width: 90px; }
+.setup-shortcut.capturing { border-color: var(--accent); color: var(--accent); }
 
 /* ---------- sidebar ---------- */
 .doc-item {

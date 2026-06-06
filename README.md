@@ -105,9 +105,9 @@ That's the whole loop: **comment in the browser → Claude revises in VS Code �
 
 | | |
 |---|---|
-| **Formatted review** | Markdown rendered as clean prose, two-pane with margin comments |
-| **Direct editing** | ✏️ Edit lets you type into the document; autosaves straight to the `.md` source (what Claude reads and what becomes the `.docx`) |
-| **Highlight + comment** | Select text → 💬 → comment is anchored to that exact passage |
+| **WYSIWYG editing** | ✏️ Edit (the default) lets you type into the *formatted* document with a toolbar; autosaves to the `.md` source via an HTML→Markdown serialiser (what Claude reads and what becomes the `.docx`) |
+| **Comment while editing** | Select text and press the comment shortcut (default ⌥C, settable in Setup) to comment without leaving the editor |
+| **Split panes** | ▦ Refs docks a resizable References panel beside or below the document; click a citation to jump to its entry. Drag the divider to resize |
 | **One-click wiring** | Double-click app sets up any project; **⌁ Wire to Claude** copies the loop command |
 | **Rolling queue** | `/loop 45s /redline` works the open comments automatically |
 | **Live diff** | Claude's edit shows as red/green word-diff in the comment + green highlight in the text |
