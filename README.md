@@ -1,6 +1,7 @@
-# Redline
+# WicrosoftMord
 
 A portable, containerized **word-processor-style review surface** for writing alongside Claude Code.
+*(The command-line tool and `/redline` skill keep their short names; the app is WicrosoftMord.)*
 
 You see Claude's drafts as formatted text — with **visible images** and **linked citations** —
 **highlight** passages and leave **comments**. Those comments queue to Claude on a **rolling loop**;
@@ -26,8 +27,8 @@ why it works across any project and any Claude Code session.
 ### 1. Get the tool
 
 ```bash
-git clone https://github.com/<you>/redline.git ~/redline
-export PATH="$HOME/redline/bin:$PATH"     # add to ~/.zshrc to make it permanent
+git clone https://github.com/<you>/WicrosoftMord.git ~/WicrosoftMord
+export PATH="$HOME/WicrosoftMord/bin:$PATH"     # add to ~/.zshrc to make it permanent
 ```
 
 (No clone needed beyond this — the tool is self-contained.)
@@ -120,9 +121,9 @@ Run several at once by setting `REDLINE_PORT` (e.g. `REDLINE_PORT=8788 redline u
 ## Push to GitHub
 
 ```bash
-cd ~/redline
-git init && git add -A && git commit -m "Redline: review surface for writing with Claude"
-gh repo create redline --public --source=. --push     # or: git remote add origin <url> && git push -u origin main
+cd ~/WicrosoftMord
+git add -A && git commit -m "WicrosoftMord: review surface for writing with Claude"   # repo is already initialized
+gh repo create WicrosoftMord --public --source=. --push   # or: git remote add origin <url> && git push -u origin main
 ```
 
 `.redline/` runtime data is git-ignored, so only the tool ships.
