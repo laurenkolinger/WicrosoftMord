@@ -91,6 +91,24 @@ body {
 .conflict-banner button { border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; background: var(--text); color: var(--bg); }
 .conflict-banner button.ghost { background: transparent; color: #4a3700; border: 1px solid #4a3700; }
 
+/* ---------- WYSIWYG editing ---------- */
+.doc.editing { outline: none; caret-color: var(--accent); }
+.doc.editing:focus { outline: none; }
+.citation { user-select: none; }
+.doc.editing .citation, .doc.editing figure { cursor: default; }
+.doc.editing .citation { background: rgba(47,109,246,.10); border-radius: 4px; padding: 0 2px; }
+
+.format-bar {
+  position: sticky; top: 0; z-index: 18; display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.format-bar button {
+  min-width: 30px; height: 28px; border: 1px solid transparent; background: none; color: var(--text);
+  border-radius: 6px; cursor: pointer; font-size: 13px; padding: 0 7px;
+}
+.format-bar button:hover { background: var(--panel-2); border-color: var(--border); }
+.fb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+
 /* ---------- sidebar ---------- */
 .doc-item {
   padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px;

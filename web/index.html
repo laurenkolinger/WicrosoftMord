@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=5" />
+  <link rel="stylesheet" href="/styles.css?v=7" />
 </head>
 <body>
   <header class="topbar">
@@ -35,12 +35,25 @@
         <button id="conflict-reload">Load Claude's version</button>
         <button id="conflict-dismiss" class="ghost">Keep mine</button>
       </div>
+      <div class="format-bar" id="format-bar" hidden>
+        <button data-cmd="bold" title="Bold (⌘B)"><b>B</b></button>
+        <button data-cmd="italic" title="Italic (⌘I)"><i>I</i></button>
+        <span class="fb-sep"></span>
+        <button data-block="H1" title="Title">H1</button>
+        <button data-block="H2" title="Heading">H2</button>
+        <button data-block="H3" title="Subheading">H3</button>
+        <button data-block="P" title="Body text">¶</button>
+        <span class="fb-sep"></span>
+        <button data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+        <button data-cmd="insertOrderedList" title="Numbered list">1.</button>
+        <button data-block="BLOCKQUOTE" title="Quote">❝</button>
+        <button data-link title="Add link">🔗</button>
+      </div>
       <div class="doc-scroll" id="doc-scroll">
         <div class="doc-positioner" id="doc-positioner">
           <article class="doc" id="doc"></article>
           <div class="overlay" id="overlay"></div>
         </div>
-        <textarea class="editor" id="editor" spellcheck="true" hidden></textarea>
       </div>
       <div class="selection-bubble" id="bubble" hidden>
         <button id="add-comment">💬 Comment</button>
@@ -113,6 +126,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=6"></script>
+  <script src="/app.js?v=7"></script>
 </body>
 </html>
