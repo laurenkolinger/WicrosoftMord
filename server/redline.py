@@ -138,6 +138,15 @@ def read_doc(rel):
         return fh.read()
 
 
+def write_doc(rel, content):
+    """Save the document straight back to its Markdown source (the .docx source)."""
+    full = safe_join(docs_root(), rel)
+    if not full.lower().endswith((".md", ".markdown")):
+        raise ValueError("can only edit Markdown documents")
+    atomic_write(full, content)
+    return os.path.getmtime(full)
+
+
 # --------------------------------------------------------------------------- #
 # Bibliography (lightweight .bib parse, for clickable preview citations)
 # --------------------------------------------------------------------------- #
@@ -375,6 +384,9 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, update_comment(m.group(1), data.get("action", ""), data))
                 if path == "/api/export":
                     return self._send(200, export_docx(self._body_json().get("path", "")))
+                if path == "/api/doc/save":
+                    data = self._body_json()
+                    return self._send(200, {"ok": True, "mtime": write_doc(data.get("path", ""), data.get("content", ""))})
             return self._send(404, {"error": "unknown endpoint"})
         except FileNotFoundError:
             return self._send(404, {"error": "not found"})

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/styles.css?v=4" />
 </head>
 <body>
   <header class="topbar">
@@ -13,10 +13,13 @@
       <span id="project-title">WicrosoftMord</span>
     </div>
     <div class="status" id="status">connecting…</div>
+    <span class="save-status" id="save-status"></span>
     <div class="controls">
+      <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
       <button id="theme-toggle" title="Toggle light / dark">◐</button>
+      <button id="wire-btn" title="Copy the command that connects this to Claude">⌁ Wire to Claude</button>
       <button id="export-btn" title="Export current document to .docx">Export .docx</button>
     </div>
   </header>
@@ -25,11 +28,17 @@
     <nav class="sidebar" id="doc-list" aria-label="Documents"></nav>
 
     <section class="doc-pane">
+      <div class="conflict-banner" id="conflict-banner" hidden>
+        Claude changed this file while you were editing.
+        <button id="conflict-reload">Load Claude's version</button>
+        <button id="conflict-dismiss" class="ghost">Keep mine</button>
+      </div>
       <div class="doc-scroll" id="doc-scroll">
         <div class="doc-positioner" id="doc-positioner">
           <article class="doc" id="doc"></article>
           <div class="overlay" id="overlay"></div>
         </div>
+        <textarea class="editor" id="editor" spellcheck="true" hidden></textarea>
       </div>
       <div class="selection-bubble" id="bubble" hidden>
         <button id="add-comment">💬 Comment</button>
@@ -62,6 +71,6 @@
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js"></script>
+  <script src="/app.js?v=4"></script>
 </body>
 </html>
