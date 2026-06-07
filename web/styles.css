@@ -524,7 +524,7 @@ mark.hl-blue { background: #90caf9; }
 .sb-pane > summary::before{ content:"▾ "; color:var(--muted); }
 .sb-pane:not([open]) > summary::before{ content:"▸ "; }
 .sb-pane .sb-body{ overflow:auto; resize:vertical; min-height:60px; max-height:70vh; padding:4px 8px 8px; }
-#sb-toc .sb-body{ height:230px; }
+#sb-toc .sb-body{ height:auto; max-height:42vh; }
 #sb-prompt .sb-body{ height:140px; }
 /* Figures pane grows to fill the rest of the sidebar (no blank space at the bottom) */
 .sb-pane#sb-media{ flex:1 1 auto; min-height:140px; }
@@ -603,3 +603,15 @@ mark.hl-blue { background: #90caf9; }
 .refs-pane .refs-panel{ flex:1; overflow:auto; padding:10px 14px; font-size:13px; }
 .popout-refs{ right:130px; }
 .toc-item.active{ background:var(--hl-open); color:var(--text); font-weight:700; border-radius:4px; }
+.toc-item.toc-flash{ animation:figflash 1.3s ease; }
+
+
+/* translucent, unobtrusive scrollbars (~5% visible until hover) */
+* { scrollbar-width: thin; scrollbar-color: rgba(140,140,140,.16) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(140,140,140,.14); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(140,140,140,.45); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+/* the comment card nearest the reader's position */
+.card.here { box-shadow: inset 3px 0 0 var(--accent); }
