@@ -128,7 +128,16 @@ mark.hl-yellow { background: #fff176; }
 mark.hl-green { background: #a5d6a7; }
 mark.hl-red { background: #ef9a9a; }
 mark.hl-blue { background: #90caf9; }
-[data-theme="dark"] .doc mark { color: #16181d; }
+/* dark mode: keep the light text, make the highlight a translucent tint so it stays readable */
+[data-theme="dark"] .doc mark { color: inherit; }
+[data-theme="dark"] mark.hl-yellow { background: rgba(255, 241, 118, .30); }
+[data-theme="dark"] mark.hl-green  { background: rgba(165, 214, 167, .32); }
+[data-theme="dark"] mark.hl-red    { background: rgba(239, 154, 154, .32); }
+[data-theme="dark"] mark.hl-blue   { background: rgba(144, 202, 249, .32); }
+/* same treatment for execCommand-painted spans (inline style → needs !important) */
+[data-theme="dark"] .doc span[style*="255, 241, 118"] { background: rgba(255, 241, 118, .30) !important; color: inherit; }
+[data-theme="dark"] .doc span[style*="165, 214, 167"] { background: rgba(165, 214, 167, .32) !important; color: inherit; }
+[data-theme="dark"] .doc span[style*="239, 154, 154"] { background: rgba(239, 154, 154, .32) !important; color: inherit; }
 .doc.highlighting { cursor: cell; }
 .hlbtn { width: 20px; height: 20px; padding: 0; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; font-size: 11px; }
 .hlbtn.hl-yellow { background: #fff176; }
@@ -311,6 +320,8 @@ mark.hl-blue { background: #90caf9; }
 .card .quote { font-size: 12.5px; color: var(--muted); border-left: 3px solid var(--hl-open-strong); padding-left: 8px; margin-bottom: 8px; font-style: italic; max-height: 4.5em; overflow: hidden; }
 .card .body { font-size: 14px; margin-bottom: 8px; }
 .card .meta { font-size: 11px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.resolve-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--muted); user-select: none; }
+.resolve-check input { cursor: pointer; margin: 0; }
 .badge { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px; padding: 1px 8px; font-weight: 700; }
 .badge.open { background: var(--hl-open-strong); color: #5a4300; }
 .badge.resolved { background: var(--ins-bg); color: var(--ins); }
