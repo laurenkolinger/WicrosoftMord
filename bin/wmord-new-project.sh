@@ -67,26 +67,23 @@ MD
 # become inline images so they survive export.)
 if [ -n "$SRC_DOCX" ] && [ -f "$SRC_DOCX" ]; then
   cp "$SRC_DOCX" "$PROJ/"
-  base="$(basename "${SRC_DOCX%.*}")"
   if command -v pandoc >/dev/null 2>&1; then
-    # Figures as ![full caption](media/...png) inline at the right spot (captions kept),
-    # and tables as PIPE tables (disable grid/multiline/simple) so the review UI renders them.
-    if ( cd "$PROJ" && pandoc "$(basename "$SRC_DOCX")" --extract-media=media \
-           -t 'markdown-grid_tables-multiline_tables-simple_tables' --wrap=none -o "$base.md" ); then
-      # strip pandoc's {width=...} image attributes so the Markdown stays clean
-      python3 - "$PROJ/$base.md" <<'PY'
-import re,sys
-p=sys.argv[1]; s=open(p,encoding="utf-8").read()
-s=re.sub(r'(\!\[[^\]]*\]\([^)]*\))\{[^}]*\}', r'\1', s)   # drop {width=...}
-open(p,"w",encoding="utf-8").write(s)
+    # Use the full importer (server/docx_import.py): PIPE tables so the review UI
+    # renders them, figures extracted into media/, Word highlight COLORS preserved
+    # as .hl-<color> marks, and Word comments / tracked changes pulled into
+    # .redline/comments. One path, so a scaffolded project matches an in-app import.
+    if python3 - "$WM_HOME" "$SRC_DOCX" "$PROJ" <<'PY'
+import sys, os
+sys.path.insert(0, os.path.join(sys.argv[1], "server"))
+import docx_import
+r = docx_import.import_docx(sys.argv[2], docs_root=sys.argv[3],
+        comments_dir=os.path.join(sys.argv[3], ".redline", "comments"))
+print("  • imported %s -> %s (%d comments, %d tracked changes; figures, colors, tables preserved)"
+      % (os.path.basename(sys.argv[2]), r["file"], r["comments"], r["changes"]))
 PY
-      figs=$(grep -cE '^\!\[' "$PROJ/$base.md" 2>/dev/null || echo 0)
-      echo "  • converted $(basename "$SRC_DOCX") → $base.md ($figs figures with captions in media/, tables inline)"
-    else
-      echo "  • pandoc conversion failed; copy the .md in by hand"
-    fi
+    then :; else echo "  • import failed; copy the .md in by hand"; fi
   else
-    echo "  • pandoc not found; install it, then: pandoc '$(basename "$SRC_DOCX")' --extract-media=media -t markdown --wrap=none -o '$base.md'"
+    echo "  • pandoc not found; install it (brew install pandoc), then re-run."
   fi
 fi
 [ -n "$SRC_BIB" ] && [ -f "$SRC_BIB" ] && cp "$SRC_BIB" "$PROJ/references.bib" && echo "  • copied references.bib"

@@ -130,12 +130,18 @@ mark.hl-yellow { background: #fff176; }
 mark.hl-green { background: #a5d6a7; }
 mark.hl-red { background: #ef9a9a; }
 mark.hl-blue { background: #90caf9; }
+mark.hl-cyan { background: #80deea; }
+mark.hl-pink { background: #f8bbd0; }
+mark.hl-orange { background: #ffcc80; }
 /* dark mode: keep the light text, make the highlight a translucent tint so it stays readable */
 [data-theme="dark"] .doc mark { color: inherit; }
 [data-theme="dark"] mark.hl-yellow { background: rgba(255, 241, 118, .30); }
 [data-theme="dark"] mark.hl-green  { background: rgba(165, 214, 167, .32); }
 [data-theme="dark"] mark.hl-red    { background: rgba(239, 154, 154, .32); }
 [data-theme="dark"] mark.hl-blue   { background: rgba(144, 202, 249, .32); }
+[data-theme="dark"] mark.hl-cyan   { background: rgba(128, 222, 234, .32); }
+[data-theme="dark"] mark.hl-pink   { background: rgba(248, 187, 208, .32); }
+[data-theme="dark"] mark.hl-orange { background: rgba(255, 204, 128, .32); }
 /* same treatment for execCommand-painted spans (inline style → needs !important) */
 [data-theme="dark"] .doc span[style*="255, 241, 118"] { background: rgba(255, 241, 118, .30) !important; color: inherit; }
 [data-theme="dark"] .doc span[style*="165, 214, 167"] { background: rgba(165, 214, 167, .32) !important; color: inherit; }
@@ -145,6 +151,9 @@ mark.hl-blue { background: #90caf9; }
 .hlbtn.hl-yellow { background: #fff176; }
 .hlbtn.hl-green { background: #a5d6a7; }
 .hlbtn.hl-red { background: #ef9a9a; }
+.hlbtn.hl-cyan { background: #80deea; }
+.hlbtn.hl-pink { background: #f8bbd0; }
+.hlbtn.hl-orange { background: #ffcc80; }
 .hlbtn.active { outline: 2px solid var(--accent); outline-offset: 1px; }
 .hl.flashing { animation: hlflash 1.7s ease; }
 @keyframes hlflash { 0% { background: var(--accent); } 60% { background: var(--hl-open-strong); } 100% { background: transparent; } }

@@ -206,12 +206,122 @@ def _run_pandoc(docx_path, out_md, media_dir):
         pandoc, docx_path, "-o", out_md,
         "--wrap=none",
         "--markdown-headings=atx",
+        # Force GFM PIPE tables (disable grid/multiline/simple) so the review UI,
+        # which renders pipe tables, keeps every table after import.
+        "-t", "markdown-grid_tables-multiline_tables-simple_tables",
         "--extract-media=" + media_dir,
         "--track-changes=accept",
     ]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or "pandoc failed to convert the .docx")
+
+
+# --------------------------------------------------------------------------- #
+# Highlight-color preservation
+# --------------------------------------------------------------------------- #
+# pandoc collapses every Word highlight to a single `[..]{.mark}` (color lost)
+# and drops shading-based highlights entirely. We re-inject the source colors so
+# the app can render `<mark class="hl-COLOR">`. Highlighter-tool runs map 1:1 to
+# pandoc's marks (in order); shading runs are wrapped by text search.
+_SHADE_MAP = {"ffc0cb": "pink", "ffa500": "orange"}
+
+
+def _run_color(run_xml):
+    """(mechanism, color) for a run: ('hl', val) highlighter, ('shd', name) shading, else (None, None)."""
+    rpr = re.search(r"<w:rPr\b[^>]*>(.*?)</w:rPr>", run_xml, re.S)
+    if not rpr:
+        return None, None
+    rp = rpr.group(1)
+    hm = re.search(r'<w:highlight w:val="([^"]+)"', rp)
+    if hm and hm.group(1) not in ("none", "white"):
+        return "hl", hm.group(1)
+    sm = re.search(r'<w:shd\b[^>]*w:fill="([^"]+)"', rp)
+    if sm and sm.group(1).lower() in _SHADE_MAP:
+        return "shd", _SHADE_MAP[sm.group(1).lower()]
+    return None, None
+
+
+def _strip_image_attrs(md):
+    """Drop pandoc's {width=..} image attributes so the Markdown stays clean."""
+    return re.sub(r'(\!\[[^\]]*\]\([^)]*\))\{[^}]*\}', r'\1', md)
+
+
+def _inject_highlight_colors(md, document_xml):
+    """Add `.hl-<color>` classes to the Markdown so highlight colors survive import."""
+    if not document_xml:
+        return md
+    mark_rx = r'\[((?:[^\[\]]|\[[^\]]*\])*?)\]\{\.mark([^}]*)\}'
+
+    # 1) Highlighter-tool "regions": consecutive highlighted runs within one
+    #    paragraph (pandoc merges these into a single [..]{.mark}, dropping color).
+    regions = []
+    for pm in re.finditer(r"<w:p\b[^>]*>(.*?)</w:p>", document_xml, re.S):
+        cur = None
+        for rm in re.finditer(r"<w:r\b[^>]*>(.*?)</w:r>", pm.group(1), re.S):
+            mech, color = _run_color(rm.group(1))
+            txt = _text_runs(rm.group(1))
+            if mech == "hl":
+                if cur is None:
+                    cur = {}
+                cur[color] = cur.get(color, 0) + max(1, len(txt))
+            elif txt.strip() != "":
+                if cur is not None:
+                    regions.append(cur); cur = None
+        if cur is not None:
+            regions.append(cur)
+    seq = [max(c, key=c.get) for c in regions]  # dominant color per region, in order
+
+    it = iter(seq)
+
+    def _repl(m):
+        try:
+            c = next(it)
+        except StopIteration:
+            c = "yellow"
+        attrs = m.group(2) or ""
+        if ".hl-" in attrs:
+            return m.group(0)
+        return "[" + m.group(1) + "]{.mark .hl-" + c + attrs + "}"
+
+    md = re.sub(mark_rx, _repl, md, flags=re.S)
+
+    # 2) Shading-based highlights have no pandoc mark — wrap by text. Pink tends to
+    #    mark citations; orange marks phrases (skip tiny/ambiguous fragments).
+    shsegs = []
+    last = None
+    for rm in re.finditer(r"<w:r\b[^>]*>(.*?)</w:r>", document_xml, re.S):
+        mech, color = _run_color(rm.group(1))
+        txt = _text_runs(rm.group(1))
+        if mech == "shd":
+            if last and last[0] == color:
+                last[1] += txt
+            else:
+                last = [color, txt]; shsegs.append(last)
+        elif txt.strip() != "":
+            last = None
+
+    def _wrap(text, color, body):
+        t = text.strip()
+        if not t:
+            return body
+        pat = re.escape(t).replace(r'\[', r'\\?\[').replace(r'\]', r'\\?\]')
+        pat = re.sub(r'\\ ', r'\\s+', pat)
+        mm = re.search(pat, body)
+        if not mm:
+            return body
+        s, e = mm.span()
+        if body[max(0, s - 12):s].endswith("hl-"):
+            return body
+        return body[:s] + "[" + body[s:e] + "]{.mark .hl-" + color + "}" + body[e:]
+
+    for color, t in shsegs:
+        if color == "pink":
+            md = _wrap(t, color, md)
+    for color, t in shsegs:
+        if color == "orange" and len(t.strip()) >= 6 and re.search(r"[A-Za-z]{4,}", t):
+            md = _wrap(t, color, md)
+    return md
 
 
 # --------------------------------------------------------------------------- #
@@ -254,6 +364,18 @@ def import_docx(docx_path, docs_root, comments_dir):
         # If the archive can't be read for review data, we still have the .md.
         document_xml = document_xml or ""
         comments_xml = comments_xml or ""
+
+    # 1b) Clean image attrs and re-inject highlight colors into the Markdown.
+    #     Cosmetic — never allowed to break the import.
+    try:
+        with open(out_md, encoding="utf-8") as fh:
+            _md = fh.read()
+        _md2 = _inject_highlight_colors(_strip_image_attrs(_md), document_xml)
+        if _md2 != _md:
+            with open(out_md, "w", encoding="utf-8") as fh:
+                fh.write(_md2)
+    except Exception:
+        pass
 
     # 2) Word comments (priority): body from comments.xml, quote from document.xml.
     comment_count = 0

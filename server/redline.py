@@ -373,7 +373,7 @@ def write_doc(rel, content):
             def tbls(s): return sum(1 for l in s.split("\n") if l.lstrip().startswith("|"))
             oi, ni = imgs(old), imgs(content)
             ot, nt = tbls(old), tbls(content)
-            if (oi >= 5 and ni < oi * 0.5) or (ot >= 10 and nt < ot * 0.5):
+            if (oi >= 1 and ni < oi) or (ot >= 10 and nt < ot * 0.5):
                 snap = full + ".rejected-" + datetime.datetime.now().strftime("%H%M%S")
                 try: atomic_write(snap, content)
                 except Exception: pass
