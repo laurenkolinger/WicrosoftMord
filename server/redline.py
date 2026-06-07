@@ -21,6 +21,7 @@ import subprocess
 import threading
 import time
 import random
+import datetime
 import sys
 import mimetypes
 import urllib.parse
@@ -104,7 +105,28 @@ def comments_dir():
 
 
 def exports_dir():
-    return os.path.join(data_dir(), "exports")
+    return os.path.join(project_dir(), "exports")   # visible in the project folder, not hidden in .redline
+
+
+def uistate_path():
+    return os.path.join(data_dir(), "ui-state.json")   # the whole UI state, so a reopen looks identical
+
+
+def load_uistate():
+    try:
+        with open(uistate_path(), "r", encoding="utf-8") as fh:
+            d = json.load(fh)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_uistate(data):
+    if not isinstance(data, dict):
+        return {"ok": False}
+    ensure_dirs()
+    atomic_write(uistate_path(), json.dumps(data, indent=0))
+    return {"ok": True}
 
 
 def config_path():
@@ -159,6 +181,14 @@ def save_settings(data):
         cfg["exportFont"] = data["exportFont"]      # "", "tnr", or "arial"
     if isinstance(data.get("cslStyle"), str):
         cfg["cslStyle"] = data["cslStyle"]          # a filename in STYLES_DIR, or ""
+    if isinstance(data.get("exportTemplate"), str):
+        cfg["exportTemplate"] = data["exportTemplate"].strip()   # absolute path to a custom .docx reference doc, or ""
+    if isinstance(data.get("bibPath"), str):
+        cfg["bibPath"] = data["bibPath"].strip()                 # absolute path to a references .bib, or "" to auto-find
+    if isinstance(data.get("litDir"), str):
+        cfg["litDir"] = data["litDir"].strip()                   # folder of source-literature PDFs for Claude to cite/verify against
+    if isinstance(data.get("styleDir"), str):
+        cfg["styleDir"] = data["styleDir"].strip()               # folder of the author's own writing samples (for VOICE only, not content)
     ensure_dirs()
     atomic_write(config_path(), json.dumps(cfg, indent=2))
     if "instructions" in data:
@@ -180,12 +210,24 @@ def load_activity():
 
 
 def list_styles():
-    out = []
-    if os.path.isdir(STYLES_DIR):
-        for n in sorted(os.listdir(STYLES_DIR)):
-            if n.lower().endswith(".csl"):
-                out.append(n)
+    # bundled styles plus any .csl you drop in the project folder or its csl/ subfolder
+    out, seen = [], set()
+    dirs = [STYLES_DIR, project_dir(), os.path.join(project_dir(), "csl")]
+    for d in dirs:
+        if os.path.isdir(d):
+            for n in sorted(os.listdir(d)):
+                if n.lower().endswith(".csl") and n not in seen:
+                    seen.add(n); out.append(n)
     return out
+
+
+def resolve_style(name):
+    """Find a .csl by filename across the bundled dir and the project folder."""
+    for d in (STYLES_DIR, project_dir(), os.path.join(project_dir(), "csl")):
+        p = os.path.join(d, name)
+        if os.path.isfile(p):
+            return p
+    return None
 
 
 def add_style(path):
@@ -326,6 +368,10 @@ def write_doc(rel, content):
 # Bibliography (lightweight .bib parse, for clickable preview citations)
 # --------------------------------------------------------------------------- #
 def find_bib():
+    # an explicit path set in Setup wins, if it still exists
+    explicit = (load_config().get("bibPath") or "").strip()
+    if explicit and os.path.isfile(explicit) and explicit.lower().endswith(".bib"):
+        return explicit
     for base in (docs_root(), project_dir()):
         for name in (sorted(os.listdir(base)) if os.path.isdir(base) else []):
             if name.lower().endswith(".bib"):
@@ -555,21 +601,30 @@ def export_docx(rel):
     src = safe_join(docs_root(), rel)
     src_dir = os.path.dirname(src)
     base = os.path.splitext(os.path.basename(rel))[0]
-    out = os.path.join(exports_dir(), f"{base}.docx")
+    stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")   # DATETIME postscript so exports are versioned, never overwritten
+    out_name = f"{base}_{stamp}.docx"
+    out = os.path.join(exports_dir(), out_name)
     cmd = [pandoc, src, "-o", out, "--standalone",
            "--resource-path", src_dir + os.pathsep + docs_root()]
-    # academic .docx template (Times New Roman / Arial 12pt), chosen in Setup
+    # reference-doc precedence: a custom template you point Setup at wins; otherwise the
+    # bundled academic template (Times New Roman / Arial 12pt) chosen in Setup
     font = cfg.get("exportFont")
-    if font in DOCX_FONTS:
+    custom = (cfg.get("exportTemplate") or "").strip()
+    used_template = None
+    if custom and os.path.isfile(custom) and custom.lower().endswith((".docx", ".dotx")):
+        cmd += ["--reference-doc", custom]
+        used_template = os.path.basename(custom)
+    elif font in DOCX_FONTS:
         ref = os.path.join(TEMPLATES_DIR, DOCX_FONTS[font])
         if os.path.isfile(ref):
             cmd += ["--reference-doc", ref]
+            used_template = DOCX_FONTS[font]
     bib = find_bib()
     used_csl = None
     if bib:
         cmd += ["--citeproc", "--bibliography", bib]
         chosen = cfg.get("cslStyle")
-        csl = os.path.join(STYLES_DIR, chosen) if chosen else None
+        csl = resolve_style(chosen) if chosen else None
         if not (csl and os.path.isfile(csl)):
             csl = find_csl()
         if csl and os.path.isfile(csl):
@@ -581,8 +636,12 @@ def export_docx(rel):
         return {"ok": False, "error": str(exc)}
     if proc.returncode != 0:
         return {"ok": False, "error": proc.stderr or "pandoc failed"}
-    return {"ok": True, "download": "/api/download?path=" + urllib.parse.quote(f"{base}.docx"),
-            "file": f"{base}.docx", "withCitations": bool(bib), "style": used_csl, "font": font or "default"}
+    if sys.platform == "darwin":                      # preview in Word automatically
+        try: subprocess.Popen(["open", out])
+        except Exception: pass
+    return {"ok": True, "download": "/api/download?path=" + urllib.parse.quote(out_name),
+            "file": out_name, "withCitations": bool(bib), "style": used_csl,
+            "font": font or "default", "template": used_template}
 
 
 # --------------------------------------------------------------------------- #
@@ -662,6 +721,8 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/ref":
                 key = (self._query().get("key") or [""])[0]
                 return self._send(200, {"ok": True, "key": key, "bibtex": get_bib_entry(key)})
+            if path == "/api/uistate":
+                return self._send(200, load_uistate())
             if path == "/api/media":
                 return self._serve_media((self._query().get("path") or [""])[0])
             if path == "/api/download":
@@ -702,6 +763,8 @@ class Handler(BaseHTTPRequestHandler):
                     data = self._body_json()
                     saved_key = save_bib_entry(data.get("key", ""), data.get("bibtex", ""))
                     return self._send(200, {"ok": True, "key": saved_key})
+                if path == "/api/uistate":
+                    return self._send(200, save_uistate(self._body_json()))
                 if path == "/api/styles/add":
                     return self._send(200, add_style(self._body_json().get("path", "")))
                 if path == "/api/import":
@@ -780,7 +843,22 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    init_active()
+    global PORT
+    # one port per project: the project's open script pins --project and --port.
+    proj, args, i = None, sys.argv[1:], 0
+    while i < len(args):
+        if args[i] in ("--project", "-p") and i + 1 < len(args):
+            proj = args[i + 1]; i += 2; continue
+        if args[i] == "--port" and i + 1 < len(args):
+            try: PORT = int(args[i + 1])
+            except ValueError: pass
+            i += 2; continue
+        i += 1
+    if proj and os.path.isdir(proj):
+        _active["project"] = os.path.abspath(proj)   # pin THIS process to this project (don't clobber shared state)
+        ensure_dirs()
+    else:
+        init_active()
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"WicrosoftMord running on http://localhost:{PORT}")
     print(f"  project : {project_dir()}")

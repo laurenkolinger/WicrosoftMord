@@ -75,6 +75,24 @@ Keep passes fast and conservative: small, surgical edits; never rewrite untouche
 a comment that isn't `open`. The Redline UI polls the files and updates live, so the moment you write,
 they see the diff and your reply.
 
+## Project context the human may have set (read `.redline/config.json`)
+
+- **`styleDir`** — a folder of the author's own writing. Consult it to match their **voice and phrasing
+  only**; do NOT import facts or content from it (their research has moved on). Mirror their cadence,
+  sentence shape, and word choice.
+- **`litDir`** — a folder of source-literature PDFs. Read from it to ground and **verify** claims, cite
+  from it, and (if you can download) add newly fetched papers to it. Never assert a number or finding you
+  cannot source.
+- **`bibPath`** — the references `.bib` to cite from. **`exportTemplate`** — a Word reference doc the export
+  copies styling from.
+
+## Figures and tables (must survive export)
+
+Markdown is the source of truth, so **figures and tables only reach the exported `.docx` if they are in the
+Markdown.** Keep every `![caption](media/…)` image and every Markdown table at its original position, and
+update the caption to match your edits. Never silently drop a figure or table when you rewrite the prose
+around it. Place an image/table at the matching `Figure N` / `Table N` callout or caption.
+
 ## Writing for .docx (house style — the human's field requires it)
 
 The Markdown is the source of truth; it is exported to **.docx** via pandoc. So write pandoc-clean Markdown:

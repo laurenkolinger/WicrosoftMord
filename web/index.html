@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=27" />
+  <link rel="stylesheet" href="/styles.css?v=28" />
 </head>
 <body>
   <header class="topbar">
@@ -203,11 +203,27 @@ Measured, academic tone; no hype words."></textarea>
       </select>
 
       <label class="setup-label">Export: reference (citation) style</label>
-      <p class="setup-hint">Used for in-text citations and the bibliography in the .docx.</p>
+      <p class="setup-hint">Used for in-text citations and the bibliography in the .docx. Add as many .csl files as you like.</p>
       <div class="folder-row">
         <select id="setup-csl" class="setup-input"></select>
         <button id="setup-add-csl" class="ghost">Add CSL…</button>
       </div>
+
+      <label class="setup-label">Export: custom Word template (optional)</label>
+      <p class="setup-hint">Point to a .docx whose styles/margins/fonts the export should copy (a "reference document"). Overrides the font choice above. Leave blank to use the template above. See the README for how to have an agent build one from an existing Word file.</p>
+      <input id="setup-template" class="setup-input" placeholder="paste a full path to a .docx template" />
+
+      <label class="setup-label">References (.bib) file (optional)</label>
+      <p class="setup-hint">Point to the BibTeX file the citations resolve against. Leave blank to auto-find a .bib in the project folder.</p>
+      <input id="setup-bib" class="setup-input" placeholder="paste a full path to a references.bib" />
+
+      <label class="setup-label">Source literature (PDF folder, optional)</label>
+      <p class="setup-hint">A folder of source PDFs Claude can read, draw from, verify claims against, and add newly downloaded papers to. Path is saved so the review agent knows where to look.</p>
+      <input id="setup-lit" class="setup-input" placeholder="paste a full path to a folder of literature PDFs" />
+
+      <label class="setup-label">Your writing samples (folder, for voice)</label>
+      <p class="setup-hint">A folder of your own published writing. Claude consults it to match your style and phrasing, never to import content (your research has moved on). Referenced in the global directions by default.</p>
+      <input id="setup-style" class="setup-input" placeholder="/Users/laurenkay/OLINGER_PUBS_WORK" />
 
       <label class="setup-label">Import a Word document</label>
       <p class="setup-hint">Convert a .docx to Markdown and pull in its comments and tracked changes.</p>
@@ -225,6 +241,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=27"></script>
+  <script src="/app.js?v=28"></script>
 </body>
 </html>
