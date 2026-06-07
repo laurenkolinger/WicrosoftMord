@@ -592,6 +592,28 @@ def update_comment(cid, action, payload):
 # --------------------------------------------------------------------------- #
 # Export (Markdown -> .docx via pandoc, with linked citations)
 # --------------------------------------------------------------------------- #
+def export_markdown(rel):
+    """Bundle the document's Markdown + its figures into exports/<base>_<stamp>/ so the
+    .md is portable (figures resolve, tables keep their pipe formatting)."""
+    src = safe_join(docs_root(), rel)
+    base = os.path.splitext(os.path.basename(rel))[0]
+    stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    bundle = os.path.join(exports_dir(), f"{base}_{stamp}")
+    os.makedirs(bundle, exist_ok=True)
+    shutil.copy2(src, os.path.join(bundle, f"{base}.md"))
+    # carry the figures so the relative image paths in the .md still resolve
+    media = os.path.join(project_dir(), "media")
+    if os.path.isdir(media):
+        dst = os.path.join(bundle, "media")
+        if os.path.isdir(dst):
+            shutil.rmtree(dst)
+        shutil.copytree(media, dst)
+    if sys.platform == "darwin":
+        try: subprocess.Popen(["open", bundle])
+        except Exception: pass
+    return {"ok": True, "file": f"{base}_{stamp}/{base}.md", "bundle": bundle}
+
+
 def export_docx(rel):
     pandoc = shutil.which("pandoc")
     if not pandoc:
@@ -769,6 +791,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, update_comment(m.group(1), data.get("action", ""), data))
                 if path == "/api/export":
                     return self._send(200, export_docx(self._body_json().get("path", "")))
+                if path == "/api/export-md":
+                    return self._send(200, export_markdown(self._body_json().get("path", "")))
                 if path == "/api/doc/save":
                     data = self._body_json()
                     return self._send(200, {"ok": True, "mtime": write_doc(data.get("path", ""), data.get("content", ""))})

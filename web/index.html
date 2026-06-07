@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=30" />
+  <link rel="stylesheet" href="/styles.css?v=31" />
 </head>
 <body>
   <header class="topbar">
@@ -21,13 +21,16 @@
     <div class="controls">
       <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
+      <button id="source-toggle" title="Toggle plain-text Markdown source (to clean things up)">{ }</button>
       <button id="refs-toggle" title="Split off a References panel">▦ Refs</button>
       <button id="bookmark-btn" title="Bookmark where you stopped reviewing">🔖</button>
       <button id="resume-btn" title="Jump to your bookmark" hidden>⤴ Resume</button>
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
+      <button id="figsize-btn" title="Figure display size (view only, does not change the export)">🖼 Fit</button>
       <button id="theme-toggle" title="Toggle light / dark">◐</button>
       <button id="wire-btn" title="Copy the command that connects the review loop">⌁ Connect</button>
+      <button id="export-md-btn" title="Export the Markdown + figures to the project's exports folder">Export .md</button>
       <button id="export-btn" title="Export current document to .docx">Export .docx</button>
     </div>
   </header>
@@ -91,6 +94,7 @@
           <div class="doc-scroll" id="doc-scroll">
             <div class="doc-positioner" id="doc-positioner">
               <article class="doc" id="doc"></article>
+              <textarea class="source-view" id="source-view" spellcheck="false" hidden></textarea>
               <div class="overlay" id="overlay"></div>
               <div class="bookmark-marker" id="bookmark-marker" hidden>🔖<span class="bm-del" id="bm-del" title="Delete bookmark">✕</span></div>
             </div>
@@ -186,6 +190,10 @@
       <label class="setup-label">Project title</label>
       <input id="setup-title" class="setup-input" placeholder="e.g. Bleaching manuscript" />
 
+      <label class="setup-label">Color theme</label>
+      <p class="setup-hint">15 light, 15 dark, plus a few for fun. Applies instantly.</p>
+      <select id="setup-theme" class="setup-input"></select>
+
       <label class="setup-label">Base directions</label>
       <p class="setup-hint">Standing house-style rules, followed in every edit and draft.</p>
       <textarea id="setup-instructions" class="setup-textarea" placeholder="e.g.
@@ -251,6 +259,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=30"></script>
+  <script src="/app.js?v=31"></script>
 </body>
 </html>
