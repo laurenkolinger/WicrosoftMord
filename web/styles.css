@@ -669,3 +669,8 @@ mark.hl-orange { background: #ffcc80; }
 /* draggable dividers between the sidebar panes */
 .sb-rez{ height:7px; flex:0 0 auto; cursor:row-resize; background:var(--border); opacity:.5; }
 .sb-rez:hover{ background:var(--accent); opacity:1; }
+
+/* figure/table add-replace-relink toolbar */
+.obj-tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.obj-tools button { font-size: 12px; padding: 3px 9px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); border-radius: 6px; cursor: pointer; }
+.obj-tools button:hover { border-color: var(--accent); color: var(--accent); }

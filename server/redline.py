@@ -358,6 +358,37 @@ def list_media():
     return out[:500]
 
 
+def save_media_upload(data):
+    """Save an uploaded image into the project's media/ folder and return its relative
+    path. data = {filename, dataB64, replacePath?}. Used to ADD a new figure or, when
+    replacePath is given, REPLACE the image a figure already points at (same link)."""
+    import base64
+    name = os.path.basename((data.get("filename") or "image.png"))
+    stem, ext = os.path.splitext(name)
+    if ext.lower() not in IMAGE_EXTS:
+        return {"ok": False, "error": "unsupported image type: " + (ext or "(none)")}
+    try:
+        raw = base64.b64decode((data.get("dataB64") or "").split(",")[-1])
+    except Exception:
+        return {"ok": False, "error": "could not decode image data"}
+    if not raw:
+        return {"ok": False, "error": "empty image"}
+    replace = (data.get("replacePath") or "").strip()
+    if replace:
+        dest = safe_join(docs_root(), replace)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+    else:
+        media = os.path.join(docs_root(), "media")
+        os.makedirs(media, exist_ok=True)
+        stem = re.sub(r"[^A-Za-z0-9_-]+", "-", stem).strip("-") or "figure"
+        fn = stem + ext.lower(); dest = os.path.join(media, fn); i = 1
+        while os.path.exists(dest):
+            fn = "%s-%d%s" % (stem, i, ext.lower()); dest = os.path.join(media, fn); i += 1
+    with open(dest, "wb") as fh:
+        fh.write(raw)
+    return {"ok": True, "path": os.path.relpath(dest, docs_root()).replace(os.sep, "/")}
+
+
 def _restore_figures(incoming, current):
     """Auto-repair figures the WYSIWYG editor mangled on serialize (e.g. an image
     `![cap](src)` that came back as `!<a href=` or vanished). Figures are images —
@@ -933,6 +964,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, {"ok": True, "path": project_dir()})
                 if path == "/api/styles/add":
                     return self._send(200, add_style(self._body_json().get("path", "")))
+                if path == "/api/media/upload":
+                    return self._send(200, save_media_upload(self._body_json()))
                 if path == "/api/import":
                     return self._send(200, self._import_docx(self._body_json().get("path", "")))
             return self._send(404, {"error": "unknown endpoint"})
