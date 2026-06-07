@@ -48,7 +48,7 @@ def within_home(p):
 ACTIVE_FILE = os.path.join(ROOT, ".wmord-active.json")   # remembers the chosen folder
 DEFAULT_WORKSPACE = os.path.join(ROOT, "workspace")       # stable scratch default
 
-DOCX_FONTS = {"tnr": "reference-tnr.docx", "arial": "reference-arial.docx"}
+DOCX_FONTS = {"tnr": "reference-tnr.docx", "arial": "reference-arial.docx", "grants": "reference-grants-compact.docx"}
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff", ".pdf"}
 _lock = threading.Lock()
@@ -373,7 +373,7 @@ def write_doc(rel, content):
             def tbls(s): return sum(1 for l in s.split("\n") if l.lstrip().startswith("|"))
             oi, ni = imgs(old), imgs(content)
             ot, nt = tbls(old), tbls(content)
-            if (oi >= 1 and ni < oi) or (ot >= 10 and nt < ot * 0.5):
+            if (oi >= 1 and ni == 0) or (ot >= 4 and nt <= 1):
                 snap = full + ".rejected-" + datetime.datetime.now().strftime("%H%M%S")
                 try: atomic_write(snap, content)
                 except Exception: pass
@@ -412,6 +412,50 @@ def find_csl():
     return None
 
 
+def _bib_fields(body):
+    """Parse BibTeX fields robustly: brace-counted values, any layout (one or many
+    fields per line, nested braces, quoted values). Returns {name: value}."""
+    out = {}
+    i, n = 0, len(body)
+    while i < n:
+        m = re.match(r"\s*(\w+)\s*=\s*", body[i:])
+        if not m:
+            j = body.find(",", i)
+            if j < 0:
+                break
+            i = j + 1
+            continue
+        name = m.group(1).lower()
+        i += m.end()
+        if i < n and body[i] == "{":
+            depth, start = 0, i
+            while i < n:
+                if body[i] == "{":
+                    depth += 1
+                elif body[i] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                i += 1
+            val = body[start + 1:i]
+            i += 1
+        elif i < n and body[i] == '"':
+            start = i + 1
+            i += 1
+            while i < n and body[i] != '"':
+                i += 1
+            val = body[start:i]
+            i += 1
+        else:
+            m2 = re.match(r"([^,\n]*)", body[i:])
+            val = m2.group(1)
+            i += m2.end()
+        out[name] = re.sub(r"\s+", " ", val).strip()
+        while i < n and body[i] in " ,\n\t":
+            i += 1
+    return out
+
+
 def parse_bib():
     path = find_bib()
     if not path:
@@ -425,11 +469,9 @@ def parse_bib():
     for m in re.finditer(r"@\w+\s*\{\s*([^,\s]+)\s*,(.*?)\n\}", text, re.S):
         key = m.group(1).strip()
         body = m.group(2)
-        fields = {}
-        for fm in re.finditer(r"(\w+)\s*=\s*[\{\"](.*?)[\}\"]\s*,?\s*\n", body + "\n", re.S):
-            fields[fm.group(1).lower()] = re.sub(r"\s+", " ", fm.group(2)).strip()
+        fields = _bib_fields(body)
         author = fields.get("author", "")
-        first_author = author.split(" and ")[0].split(",")[0].strip() if author else ""
+        first_author = author.split(" and ")[0].split(",")[0].strip().strip("{}") if author else ""
         year = fields.get("year", "")
         label = f"{first_author} {year}".strip() or key
         doi = fields.get("doi", "")

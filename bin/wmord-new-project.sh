@@ -60,6 +60,8 @@ American spelling. Active voice. Measured, academic tone; no hype words.
 Cite only from the project references.bib, and verify claims against the source PDFs in litDir.
 Match the author's voice using the writing samples in styleDir for STYLE and phrasing ONLY, never to import content.
 On export, keep every figure and table at its original place with its current caption so they survive into the .docx.
+
+On import you MUST: (1) build references.bib from any numbered reference list (keys lastnameYEAR with a/b for same-year duplicates, ONE field per line, include DOIs) and convert every numeric in-text citation like \[1, 2, 3\] to pandoc [@key1; @key2]; set bibPath and cslStyle in config. (2) Keep each figure/table caption WITH its figure/table (remove duplicate standalone **Figure N.** caption paragraphs from the body); figures use RELATIVE media paths; tables are pipe tables.
 MD
 
 # If a source .docx is given: copy it in, convert to Markdown, extract figures into

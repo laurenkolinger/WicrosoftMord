@@ -284,3 +284,28 @@ citations, `templates/` holds export reference docs, `exports/` holds date-stamp
 `.redline/` holds the global `instructions.md`, the per-comment JSON in `comments/`, and `config.json`.
 
 See `.claude/skills/redline/SKILL.md` for the exact comment schema and Claude's pass algorithm.
+
+## Troubleshooting: "save failed — would drop figures and tables"
+
+`server/redline.py` `write_doc` refuses a save that would WIPE the document's figures
+or tables, so a bad editor serialization can never corrupt the Markdown source.
+
+If you hit it:
+1. **Hard-refresh the app (Cmd+Shift+R)** to load the current `app.js`, then redo your edit.
+   The most common cause is a stale browser tab running an older `app.js`.
+2. The guard now blocks ONLY a *catastrophic* loss (every figure gone, or a table reduced
+   to nothing). Normal and partial edits always save.
+
+Why it happens, and how it is prevented permanently:
+- Figures are atomic `<figure>` chips that carry their Markdown in `data-md`. contenteditable
+  can strip `data-md` mid-edit, so the serializer (`web/app.js` `imgMd`, and the block-level
+  `figure` case) REBUILDS `![alt](src)` from the image's `src`+`alt` — a figure can never
+  serialize to nothing. Image paths are RELATIVE (`media/...`), never absolute:
+  `server/docx_import.py` runs pandoc inside the project dir with a relative `--extract-media`.
+- Tables serialize via `mdTable` into GFM pipe tables.
+- The guard is the backstop, tuned to catch only `ni == 0` figures or a table reduced to
+  `<= 1` row — never a normal edit.
+
+If saves STILL fail after a hard refresh, the editor lost the real `<figure>`/`<table>`
+element (a contenteditable hazard when typing directly against it): undo, click outside the
+object, and edit the surrounding paragraph instead.
