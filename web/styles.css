@@ -674,3 +674,9 @@ mark.hl-orange { background: #ffcc80; }
 .obj-tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
 .obj-tools button { font-size: 12px; padding: 3px 9px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); border-radius: 6px; cursor: pointer; }
 .obj-tools button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* @ citation picker */
+#cite-picker { position: fixed; z-index: 60; min-width: 220px; max-width: 360px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 4px; font-size: 12px; max-height: 240px; overflow-y: auto; }
+#cite-picker .cite-opt { padding: 4px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+#cite-picker .cite-opt.active, #cite-picker .cite-opt:hover { background: var(--panel-2); }
+#cite-picker .cite-key { font-family: ui-monospace, Menlo, monospace; color: var(--accent); font-weight: 700; }
