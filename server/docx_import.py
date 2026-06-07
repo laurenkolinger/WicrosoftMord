@@ -202,17 +202,28 @@ def _run_pandoc(docx_path, out_md, media_dir):
     pandoc = shutil.which("pandoc")
     if not pandoc:
         raise RuntimeError("pandoc is not installed (required for .docx import).")
+    # Run pandoc *inside* the output directory with a RELATIVE media dir so the
+    # image links it writes are project-relative (media/media/x.png) rather than
+    # absolute. Absolute paths break the UI when the project path contains spaces
+    # and never resolve through /api/media. The docx is passed as an absolute path
+    # so pandoc still finds it regardless of cwd.
+    cwd = os.path.dirname(os.path.abspath(out_md)) or "."
+    out_rel = os.path.basename(out_md)
+    try:
+        media_rel = os.path.relpath(media_dir, cwd)
+    except ValueError:
+        media_rel = media_dir
     cmd = [
-        pandoc, docx_path, "-o", out_md,
+        pandoc, os.path.abspath(docx_path), "-o", out_rel,
         "--wrap=none",
         "--markdown-headings=atx",
         # Force GFM PIPE tables (disable grid/multiline/simple) so the review UI,
         # which renders pipe tables, keeps every table after import.
         "-t", "markdown-grid_tables-multiline_tables-simple_tables",
-        "--extract-media=" + media_dir,
+        "--extract-media=" + media_rel,
         "--track-changes=accept",
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=cwd)
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or "pandoc failed to convert the .docx")
 
@@ -301,19 +312,23 @@ def _inject_highlight_colors(md, document_xml):
         elif txt.strip() != "":
             last = None
 
+    mark_span_rx = re.compile(r'\[(?:[^\[\]]|\[[^\]]*\])*?\]\{[^}]*\.mark[^}]*\}', re.S)
+
     def _wrap(text, color, body):
         t = text.strip()
         if not t:
             return body
         pat = re.escape(t).replace(r'\[', r'\\?\[').replace(r'\]', r'\\?\]')
         pat = re.sub(r'\\ ', r'\\s+', pat)
-        mm = re.search(pat, body)
-        if not mm:
-            return body
-        s, e = mm.span()
-        if body[max(0, s - 12):s].endswith("hl-"):
-            return body
-        return body[:s] + "[" + body[s:e] + "]{.mark .hl-" + color + "}" + body[e:]
+        spans = [m.span() for m in mark_span_rx.finditer(body)]
+        for mm in re.finditer(pat, body):
+            s, e = mm.span()
+            # never wrap text overlapping an existing mark — that would nest marks,
+            # which no Markdown highlighter (or this UI) can render.
+            if any(ms < e and s < me for ms, me in spans):
+                continue
+            return body[:s] + "[" + body[s:e] + "]{.mark .hl-" + color + "}" + body[e:]
+        return body
 
     for color, t in shsegs:
         if color == "pink":
