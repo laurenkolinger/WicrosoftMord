@@ -363,6 +363,28 @@ def write_doc(rel, content):
     full = safe_join(docs_root(), rel)
     if not full.lower().endswith((".md", ".markdown")):
         raise ValueError("can only edit Markdown documents")
+    # HARD SAFETY NET: never let a save wipe the figures or tables, no matter what the
+    # client serialized. If the incoming content drops most images/tables that the saved
+    # file has, reject the save and keep the file. The .CORRUPTED snapshot is for forensics.
+    try:
+        if os.path.isfile(full):
+            old = open(full, "r", encoding="utf-8").read()
+            def imgs(s): return len(re.findall(r"!\[", s))
+            def tbls(s): return sum(1 for l in s.split("\n") if l.lstrip().startswith("|"))
+            oi, ni = imgs(old), imgs(content)
+            ot, nt = tbls(old), tbls(content)
+            if (oi >= 5 and ni < oi * 0.5) or (ot >= 10 and nt < ot * 0.5):
+                snap = full + ".rejected-" + datetime.datetime.now().strftime("%H%M%S")
+                try: atomic_write(snap, content)
+                except Exception: pass
+                raise ValueError(
+                    "save rejected: it would drop figures/tables (had %d figures / %d table rows, "
+                    "incoming has %d / %d). Your file was NOT changed. Hard-refresh the app to get the "
+                    "current version, then re-make your edit." % (oi, ot, ni, nt))
+    except ValueError:
+        raise
+    except Exception:
+        pass
     atomic_write(full, content)
     return os.path.getmtime(full)
 
