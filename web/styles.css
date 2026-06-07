@@ -507,7 +507,7 @@ mark.hl-blue { background: #90caf9; }
 [data-theme="legally-blonde"] .dot{background:#ff1d8e;box-shadow:0 0 8px #ff8ac4;}
 [data-theme="super-black"]{--ui-font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --bg:#000000;--panel:#000000;--panel-2:#070707;--text:#f2f2f2;--muted:#7d7d7d;--border:#1a1a1a;--accent:#ffffff;
-  --hl-open:rgba(255,255,255,.14);--hl-open-strong:rgba(255,255,255,.3);--ins:#7CFC00;--del:#ff5c5c;--shadow:0 8px 30px rgba(0,0,0,.9);}
+  --hl-open:rgba(251,146,60,.30);--hl-open-strong:rgba(251,146,60,.55);--ins:#7CFC00;--del:#ff5c5c;--shadow:0 8px 30px rgba(0,0,0,.9);}
 
 /* in-text figure / table reference links + flash target */
 .figref{ color:var(--accent); text-decoration:none; cursor:pointer; border-bottom:1px dotted var(--accent); }
@@ -615,3 +615,22 @@ mark.hl-blue { background: #90caf9; }
 ::-webkit-scrollbar-corner { background: transparent; }
 /* the comment card nearest the reader's position */
 .card.here { box-shadow: inset 3px 0 0 var(--accent); }
+
+
+/* super-black: colorful "toppings" — each anchor type a distinct highlight, all
+   different from the yellow/green/red highlighter you apply by hand */
+[data-theme="super-black"] .citation,
+[data-theme="super-black"] .reflink{ color:#22d3ee; background:rgba(34,211,238,.18); border:none; border-radius:4px; padding:0 3px; }
+[data-theme="super-black"] .figref[data-fig^="fig-"]{ color:#a78bfa; background:rgba(167,139,250,.20); border:none; }
+[data-theme="super-black"] .figref[data-fig^="tbl-"]{ color:#f472b6; background:rgba(244,114,182,.20); border:none; }
+[data-theme="super-black"] .figref:hover,[data-theme="super-black"] .citation:hover,[data-theme="super-black"] .reflink:hover{ filter:brightness(1.35); }
+/* commented text glows amber (the overlay) */
+[data-theme="super-black"] .hl.open{ background:rgba(251,146,60,.26); box-shadow:0 0 8px rgba(251,146,60,.3); }
+[data-theme="super-black"] .hl.open.focus{ background:rgba(251,146,60,.5); }
+/* inserted edits stay green / removed red, but punchier on black */
+[data-theme="super-black"] .sugg-ins{ background:rgba(74,222,128,.22); color:#86efac; }
+[data-theme="super-black"] .sugg-del{ background:rgba(248,113,113,.22); color:#fca5a5; }
+/* a tiny legend so the colors are legible */
+[data-theme="super-black"] .ref-tabs button[data-rtab="figs"].active{ color:#a78bfa; }
+[data-theme="super-black"] .ref-tabs button[data-rtab="tbls"].active{ color:#f472b6; }
+[data-theme="super-black"] .ref-tabs button[data-rtab="refs"].active{ color:#22d3ee; }
