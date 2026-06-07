@@ -1,5 +1,7 @@
 :root {
   --font-scale: 1;
+  --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --doc-font: Georgia, "Iowan Old Style", "Times New Roman", serif;
   --bg: #f6f7f8;
   --panel: #ffffff;
   --panel-2: #fbfbfc;
@@ -43,7 +45,7 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--ui-font);
   background: var(--bg);
   color: var(--text);
   font-size: 15px;
@@ -420,3 +422,67 @@ mark.hl-blue { background: #90caf9; }
 
 /* ---------- toast ---------- */
 .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 13px; z-index: 60; box-shadow: var(--shadow); }
+
+/* ============================ THEMES ============================ */
+/* shared dark tokens (diff colors, highlights, shadow) for all dark + special themes */
+[data-theme="dark"],[data-theme="midnight"],[data-theme="dracula"],[data-theme="nord"],[data-theme="solarized-dark"],
+[data-theme="forest"],[data-theme="ocean"],[data-theme="ember"],[data-theme="plum"],[data-theme="carbon"],
+[data-theme="mocha"],[data-theme="graphite"],[data-theme="cyberpunk"],[data-theme="matrix"],[data-theme="blood"],[data-theme="lisa-frank"] {
+  --hl-open: rgba(255,196,0,.26); --hl-open-strong: rgba(255,196,0,.45);
+  --hl-rev: rgba(50,210,120,.26); --hl-resolved: rgba(150,150,150,.16);
+  --ins:#5cd98a; --ins-bg:rgba(50,210,120,.16); --del:#ff7b72; --del-bg:rgba(220,80,70,.18);
+  --shadow:0 8px 30px rgba(0,0,0,.5);
+}
+/* ---- LIGHT palettes (inherit :root tokens) ---- */
+[data-theme="paper"]{--bg:#efe9dc;--panel:#fbf7ee;--panel-2:#f5efe2;--text:#2a2620;--muted:#7c7361;--border:#e0d7c4;--accent:#b5742a;}
+[data-theme="sky"]{--bg:#eaf1fb;--panel:#fbfdff;--panel-2:#f1f6fd;--text:#16202e;--muted:#5d6b7e;--border:#d6e3f2;--accent:#2f6df6;}
+[data-theme="mint"]{--bg:#e8f4ec;--panel:#fafdfb;--panel-2:#eef7f1;--text:#15241b;--muted:#5d7567;--border:#d2e7da;--accent:#1f9d57;}
+[data-theme="sand"]{--bg:#f1ead9;--panel:#fbf8f0;--panel-2:#f4eee0;--text:#2c2519;--muted:#7d7259;--border:#e3d8bf;--accent:#c08a2e;}
+[data-theme="lavender"]{--bg:#efeafb;--panel:#fcfaff;--panel-2:#f3eefc;--text:#211c2e;--muted:#6d6483;--border:#e0d7f2;--accent:#7c4dff;}
+[data-theme="rose"]{--bg:#fbe9f0;--panel:#fffafc;--panel-2:#fbeef3;--text:#2e1c24;--muted:#8a6470;--border:#f2d6e1;--accent:#d6336c;}
+[data-theme="seafoam"]{--bg:#e6f4f1;--panel:#f9fdfc;--panel-2:#edf7f5;--text:#15231f;--muted:#5d756e;--border:#cfe7e1;--accent:#0f9b8e;}
+[data-theme="parchment"]{--bg:#f4eccf;--panel:#fdf9e9;--panel-2:#f6efd6;--text:#2c2710;--muted:#7e7444;--border:#e6dcb4;--accent:#a98307;}
+[data-theme="blossom"]{--bg:#fbe9f7;--panel:#fffafd;--panel-2:#fbeef8;--text:#2c1c29;--muted:#86647e;--border:#f1d6ec;--accent:#c026d3;}
+[data-theme="arctic"]{--bg:#eaf0f6;--panel:#fbfdfe;--panel-2:#f0f5fa;--text:#172029;--muted:#5e6b78;--border:#d7e1ec;--accent:#0e7490;}
+[data-theme="sepia"]{--bg:#ece0cd;--panel:#f8f1e3;--panel-2:#f0e7d5;--text:#2b2114;--muted:#7c6c52;--border:#ddcdb0;--accent:#9a6324;}
+[data-theme="slate-light"]{--bg:#eef1f4;--panel:#fbfcfd;--panel-2:#f2f5f8;--text:#1b2229;--muted:#64707c;--border:#dbe1e8;--accent:#475569;}
+[data-theme="solarized-light"]{--bg:#fdf6e3;--panel:#fffbf0;--panel-2:#f5eed9;--text:#3a4b51;--muted:#93a1a1;--border:#e7dcc0;--accent:#268bd2;}
+[data-theme="citrus"]{--bg:#f6f3df;--panel:#fdfcf2;--panel-2:#f3efd9;--text:#2a2710;--muted:#7a754f;--border:#e6e0bf;--accent:#ea7317;}
+/* ---- DARK palettes ---- */
+[data-theme="midnight"]{--bg:#0b1020;--panel:#121a33;--panel-2:#172041;--text:#e6ebff;--muted:#8b9bd0;--border:#243056;--accent:#6aa3ff;}
+[data-theme="dracula"]{--bg:#282a36;--panel:#2f323e;--panel-2:#343746;--text:#f8f8f2;--muted:#9aa0b3;--border:#44475a;--accent:#bd93f9;}
+[data-theme="nord"]{--bg:#2e3440;--panel:#353c4a;--panel-2:#3b4252;--text:#eceff4;--muted:#9aa6b8;--border:#434c5e;--accent:#88c0d0;}
+[data-theme="solarized-dark"]{--bg:#002b36;--panel:#073642;--panel-2:#0a3d49;--text:#e9e2c8;--muted:#93a1a1;--border:#0f4c5c;--accent:#268bd2;}
+[data-theme="forest"]{--bg:#0e1a12;--panel:#15251a;--panel-2:#1a2e20;--text:#e3f0e6;--muted:#85a890;--border:#26412f;--accent:#3fb96b;}
+[data-theme="ocean"]{--bg:#08191e;--panel:#0e252c;--panel-2:#122e36;--text:#dff2f4;--muted:#7fa6ad;--border:#1c3f49;--accent:#22b8c2;}
+[data-theme="ember"]{--bg:#1a120c;--panel:#241811;--panel-2:#2c1d14;--text:#f3e7dc;--muted:#b08d76;--border:#3d281c;--accent:#ff8c42;}
+[data-theme="plum"]{--bg:#160e1e;--panel:#20152c;--panel-2:#281a36;--text:#efe4f7;--muted:#a98fc0;--border:#3a2750;--accent:#c77dff;}
+[data-theme="carbon"]{--bg:#0b0c0e;--panel:#141619;--panel-2:#1a1d21;--text:#e7e9ec;--muted:#8b9299;--border:#262a30;--accent:#9aa0a6;}
+[data-theme="mocha"]{--bg:#181210;--panel:#221a16;--panel-2:#2a201b;--text:#efe4db;--muted:#b0978a;--border:#3a2c24;--accent:#caa472;}
+[data-theme="graphite"]{--bg:#101216;--panel:#181b20;--panel-2:#1e2228;--text:#e6e9ee;--muted:#959ba6;--border:#2a2f37;--accent:#7c8aa0;}
+[data-theme="cyberpunk"]{--bg:#0d0221;--panel:#190a33;--panel-2:#21103f;--text:#f5e6ff;--muted:#b18cd9;--border:#3a1e5e;--accent:#ff2fb9;}
+/* ---- SPECIAL: console / hacker themes — monospace UI, rich text stays in the editor ---- */
+[data-theme="matrix"]{--ui-font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--bg:#000600;--panel:#02160a;--panel-2:#031c0d;--text:#46ff86;--muted:#1f9f4d;--border:#0c3a1c;--accent:#39ff14;--ins:#39ff14;--del:#ff5555;}
+[data-theme="blood"]{--ui-font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--bg:#0a0000;--panel:#1a0303;--panel-2:#220505;--text:#ff6b6b;--muted:#a33333;--border:#3d0d0d;--accent:#ff1717;--ins:#ff9c9c;--del:#ff3030;}
+/* ---- SPECIAL: Lisa Frank — neon technicolor ---- */
+[data-theme="lisa-frank"]{--ui-font:"Comic Sans MS","Chalkboard SE","Trebuchet MS",var(--ui-font);
+  --bg:#1a0a2e;--panel:#2a0f47;--panel-2:#33125a;--text:#fff0fb;--muted:#ff9de6;--border:#7a2da8;--accent:#ff2fb9;
+  --hl-open:rgba(252,234,8,.34);--hl-open-strong:rgba(246,132,27,.6);--ins:#6eeb83;--ins-bg:rgba(110,235,131,.22);--del:#ff5fa2;--del-bg:rgba(255,95,162,.22);}
+[data-theme="lisa-frank"] body{background:linear-gradient(135deg,#2a0a4a 0%,#5e1280 35%,#0b6e8f 70%,#1a0a2e 100%);}
+[data-theme="lisa-frank"] .topbar,[data-theme="lisa-frank"] .filters button.active{background:linear-gradient(90deg,#ff2fb9,#ac3cfe,#05aded,#6eb63f,#fcea08);-webkit-background-clip:border-box;}
+[data-theme="lisa-frank"] .dot{background:#fcea08;box-shadow:0 0 8px #ff2fb9;}
+[data-theme="matrix"] .topbar,[data-theme="blood"] .topbar{letter-spacing:.04em;text-transform:uppercase;font-size:12px;}
+
+/* ============================ page break ============================ */
+.pagebreak{ text-align:center; color:var(--muted); font-size:11px; letter-spacing:.15em; text-transform:uppercase;
+  margin:1.6em 0; padding:6px 0; border-top:1px dashed var(--border); border-bottom:1px dashed var(--border); user-select:none; }
+
+/* ============================ advanced format row ============================ */
+.format-bar.adv{ border-top:1px dashed var(--border); }
+.doc sub,.doc sup{ line-height:0; }
+
+/* ============================ resizable sidebar sections ============================ */
+#toc{ resize:vertical; overflow:auto; min-height:48px; max-height:60vh; }
+#figures{ resize:vertical; overflow:auto; min-height:40px; max-height:46vh; }
+.sb-section .global-prompt{ resize:vertical; }
+#toc::-webkit-resizer,#figures::-webkit-resizer{ }

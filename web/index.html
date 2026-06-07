@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=29" />
+  <link rel="stylesheet" href="/styles.css?v=30" />
 </head>
 <body>
   <header class="topbar">
@@ -12,12 +12,12 @@
       <span class="dot"></span>
       <span id="project-title">WicrosoftMord</span>
     </div>
-    <button class="folder-chip" id="folder-chip" title="Working folder, click for Setup">📁 …</button>
+    <button class="folder-chip" id="folder-chip" title="Open the project folder in Finder">📁 …</button>
     <div class="status" id="status">connecting…</div>
     <span class="save-status" id="save-status"></span>
     <span class="wordcount" id="wordcount" title="Word count (press the word-count shortcut on a selection)"></span>
     <span class="activity" id="activity" hidden></span>
-    <button class="newchanges" id="newchanges" hidden title="Claude updated this document">✶ New changes from Claude</button>
+    <button class="newchanges" id="newchanges" hidden title="The document was updated">✶ New changes</button>
     <div class="controls">
       <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
       <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
@@ -27,7 +27,7 @@
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
       <button id="theme-toggle" title="Toggle light / dark">◐</button>
-      <button id="wire-btn" title="Copy the command that connects this to Claude">⌁ Wire to Claude</button>
+      <button id="wire-btn" title="Copy the command that connects the review loop">⌁ Connect</button>
       <button id="export-btn" title="Export current document to .docx">Export .docx</button>
     </div>
   </header>
@@ -44,8 +44,8 @@
       </div>
       <div class="sidebar-bottom">
         <details class="sb-section" id="sb-prompt" open>
-          <summary>⌁ Directions for Claude (global)</summary>
-          <textarea id="global-prompt" class="global-prompt" placeholder="Standing instructions Claude obeys across the whole project and every comment. Add or change on the fly; saved automatically."></textarea>
+          <summary>Global directions</summary>
+          <textarea id="global-prompt" class="global-prompt" placeholder="Standing instructions followed across the whole project and every comment. Add or change on the fly; saved automatically."></textarea>
           <div class="gp-status" id="gp-status"></div>
         </details>
         <details class="sb-section" id="sb-media" open>
@@ -75,6 +75,16 @@
         <button data-hl="hl-green" class="hlbtn hl-green" title="Highlighter: green (toggle, then select)"></button>
         <button data-hl="hl-red" class="hlbtn hl-red" title="Highlighter: red (toggle, then select)"></button>
         <button data-unhl class="hlbtn" title="Eraser (toggle, then select)">⌫</button>
+        <span class="fb-sep"></span>
+        <button id="fb-more" title="More formatting">⋯ More</button>
+      </div>
+      <div class="format-bar adv" id="format-bar-adv" hidden>
+        <button data-cmd="underline" title="Underline (⌘U)"><u>U</u></button>
+        <button data-cmd="superscript" title="Superscript">x<sup>2</sup></button>
+        <button data-cmd="subscript" title="Subscript">x<sub>2</sub></button>
+        <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+        <span class="fb-sep"></span>
+        <button data-pagebreak title="Insert a page break (appears in the .docx export)">⤓ Page break</button>
       </div>
       <div class="workspace" id="workspace" data-split="none">
         <div class="pane pane-doc" id="pane-doc">
@@ -111,7 +121,7 @@
           <button data-filter="open" class="active">Open</button>
           <button data-filter="all">All</button>
         </div>
-        <button class="link-btn" id="collapse-all-resp" title="Collapse or expand every Claude response">▸ Collapse all</button>
+        <button class="link-btn" id="collapse-all-resp" title="Collapse or expand every response">▸ Collapse all</button>
         <button class="pane-x" id="cmt-collapse" title="Collapse comments">▶</button>
       </div>
       <div id="comments-list"></div>
@@ -143,7 +153,7 @@
   <div class="composer-backdrop" id="composer-backdrop" hidden>
     <div class="composer">
       <div class="composer-quote" id="composer-quote"></div>
-      <textarea id="composer-input" placeholder="Leave a comment for Claude… (e.g. 'tighten this', 'needs a citation', 'this overstates the result')"></textarea>
+      <textarea id="composer-input" placeholder="Leave a comment… (e.g. 'tighten this', 'needs a citation', 'this overstates the result')"></textarea>
       <div class="composer-actions">
         <button id="composer-cancel" class="ghost">Cancel</button>
         <button id="composer-save" class="primary">Comment</button>
@@ -157,10 +167,10 @@
       <h2>WicrosoftMord setup</h2>
 
       <label class="setup-label">Working folder</label>
-      <p class="setup-hint">The folder WicrosoftMord reads and writes. Copy this path and give it to Claude so its review loop watches the same place.</p>
+      <p class="setup-hint">The folder WicrosoftMord reads and writes. Copy this path and give it to the review loop so it watches the same place.</p>
       <div class="folder-row">
         <code id="setup-folder-path">…</code>
-        <button id="setup-copy-path" class="ghost" title="Copy path for Claude">Copy</button>
+        <button id="setup-copy-path" class="ghost" title="Copy path">Copy</button>
         <button id="setup-change-folder" class="ghost">Change…</button>
       </div>
 
@@ -176,8 +186,8 @@
       <label class="setup-label">Project title</label>
       <input id="setup-title" class="setup-input" placeholder="e.g. Bleaching manuscript" />
 
-      <label class="setup-label">Base directions for Claude</label>
-      <p class="setup-hint">Standing house-style rules. Claude reads these and follows them in every edit and draft.</p>
+      <label class="setup-label">Base directions</label>
+      <p class="setup-hint">Standing house-style rules, followed in every edit and draft.</p>
       <textarea id="setup-instructions" class="setup-textarea" placeholder="e.g.
 No em dashes; use commas, colons, or parentheses instead.
 Active voice. American spelling.
@@ -218,11 +228,11 @@ Measured, academic tone; no hype words."></textarea>
       <input id="setup-bib" class="setup-input" placeholder="paste a full path to a references.bib" />
 
       <label class="setup-label">Source literature (PDF folder, optional)</label>
-      <p class="setup-hint">A folder of source PDFs Claude can read, draw from, verify claims against, and add newly downloaded papers to. Path is saved so the review agent knows where to look.</p>
+      <p class="setup-hint">A folder of source PDFs the review loop can read, draw from, verify claims against, and add newly downloaded papers to. Path is saved so the review agent knows where to look.</p>
       <input id="setup-lit" class="setup-input" placeholder="paste a full path to a folder of literature PDFs" />
 
       <label class="setup-label">Your writing samples (folder, for voice)</label>
-      <p class="setup-hint">A folder of your own published writing. Claude consults it to match your style and phrasing, never to import content (your research has moved on). Referenced in the global directions by default.</p>
+      <p class="setup-hint">A folder of your own published writing, consulted to match your style and phrasing, never to import content (your research has moved on). Referenced in the global directions by default.</p>
       <input id="setup-style" class="setup-input" placeholder="/Users/laurenkay/OLINGER_PUBS_WORK" />
 
       <label class="setup-label">Import a Word document</label>
@@ -241,6 +251,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=29"></script>
+  <script src="/app.js?v=30"></script>
 </body>
 </html>

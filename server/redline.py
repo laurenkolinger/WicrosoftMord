@@ -604,7 +604,20 @@ def export_docx(rel):
     stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")   # DATETIME postscript so exports are versioned, never overwritten
     out_name = f"{base}_{stamp}.docx"
     out = os.path.join(exports_dir(), out_name)
-    cmd = [pandoc, src, "-o", out, "--standalone",
+    # turn the <!-- pagebreak --> token into a real .docx page break via a raw openxml block
+    pandoc_src = src
+    try:
+        with open(src, "r", encoding="utf-8") as fh:
+            text = fh.read()
+        if "<!-- pagebreak -->" in text:
+            pb = "```{=openxml}\n<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n```"
+            text = re.sub(r"<!--\s*pagebreak\s*-->", pb, text)
+            ensure_dirs()
+            pandoc_src = os.path.join(data_dir(), f"_export_{base}.md")
+            atomic_write(pandoc_src, text)
+    except Exception:
+        pandoc_src = src
+    cmd = [pandoc, pandoc_src, "-o", out, "--standalone",
            "--resource-path", src_dir + os.pathsep + docs_root()]
     # reference-doc precedence: a custom template you point Setup at wins; otherwise the
     # bundled academic template (Times New Roman / Arial 12pt) chosen in Setup
@@ -765,6 +778,11 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, {"ok": True, "key": saved_key})
                 if path == "/api/uistate":
                     return self._send(200, save_uistate(self._body_json()))
+                if path == "/api/reveal":
+                    if sys.platform == "darwin":
+                        try: subprocess.Popen(["open", project_dir()])
+                        except Exception: pass
+                    return self._send(200, {"ok": True, "path": project_dir()})
                 if path == "/api/styles/add":
                     return self._send(200, add_style(self._body_json().get("path", "")))
                 if path == "/api/import":
