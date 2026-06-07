@@ -584,3 +584,22 @@ mark.hl-blue { background: #90caf9; }
 .obj-view-actions{ display:flex; gap:6px; margin-top:10px; }
 .obj-view-actions button{ border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:6px; padding:4px 9px; cursor:pointer; font-size:12px; }
 .obj-view-actions button:hover{ border-color:var(--accent); }
+
+
+/* References / Figures / Tables: a permanent collapsible pane, bottom by default, toggleable to a side column */
+.doc-and-refs{ flex:1; display:flex; min-height:0; min-width:0; }
+.doc-and-refs[data-orient="bottom"]{ flex-direction:column; }
+.doc-and-refs[data-orient="side"]{ flex-direction:row; }
+.doc-and-refs .workspace{ flex:1; min-height:0; min-width:0; }
+.refs-pane{ background:var(--panel); display:flex; flex-direction:column; overflow:hidden; }
+.doc-and-refs[data-orient="bottom"] .refs-pane{ height:var(--refs-h,260px); border-top:1px solid var(--border); }
+.doc-and-refs[data-orient="side"] .refs-pane{ width:var(--refs-w,340px); border-left:1px solid var(--border); }
+.rrz{ background:var(--border); flex:0 0 6px; }
+.doc-and-refs[data-orient="bottom"] .rrz{ cursor:row-resize; }
+.doc-and-refs[data-orient="side"] .rrz{ cursor:col-resize; }
+.rrz:hover{ background:var(--accent); }
+.layout.no-refs .refs-pane, .layout.no-refs .rrz{ display:none; }
+.refs-pane .pane-head{ display:flex; align-items:center; justify-content:space-between; }
+.refs-pane .refs-panel{ flex:1; overflow:auto; padding:10px 14px; font-size:13px; }
+.popout-refs{ right:130px; }
+.toc-item.active{ background:var(--hl-open); color:var(--text); font-weight:700; border-radius:4px; }

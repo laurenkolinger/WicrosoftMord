@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=33" />
+  <link rel="stylesheet" href="/styles.css?v=34" />
 </head>
 <body>
   <header class="topbar">
@@ -22,9 +22,8 @@
       <button id="setup-btn" title="Setup: folder + your standing directions">Setup</button>
       <button id="edit-toggle" title="Edit the text directly">Edit</button>
       <button id="source-toggle" title="Toggle plain-text Markdown source (to clean things up)">{ }</button>
-      <button id="refs-toggle" title="Split off a References panel">▦ Refs</button>
-      <button id="bookmark-btn" title="Drop a bookmark where you stopped reviewing">Bookmark</button>
-      <button id="resume-btn" title="Scroll back to your bookmark" hidden>Go to bookmark</button>
+      <button id="bookmark-btn" title="Drop a bookmark where you stopped reviewing">🔖</button>
+      <button id="resume-btn" title="Scroll back to your bookmark" hidden>↩🔖</button>
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
       <button id="theme-toggle" title="Toggle between your default light and dark themes">◐</button>
@@ -87,31 +86,33 @@
         <span class="fb-sep"></span>
         <button data-pagebreak title="Insert a page break (appears in the .docx export)">Page break</button>
       </div>
-      <div class="workspace" id="workspace" data-split="none">
-        <div class="pane pane-doc" id="pane-doc">
-          <div class="doc-scroll" id="doc-scroll">
-            <div class="doc-positioner" id="doc-positioner">
-              <article class="doc" id="doc"></article>
-              <textarea class="source-view" id="source-view" spellcheck="false" hidden></textarea>
-              <div class="overlay" id="overlay"></div>
-              <div class="bookmark-marker" id="bookmark-marker" hidden><span class="bm-marker">¶</span><span class="bm-del" id="bm-del" title="Delete bookmark">✕</span></div>
+      <div class="doc-and-refs" id="doc-and-refs" data-orient="bottom">
+        <div class="workspace" id="workspace">
+          <div class="pane pane-doc" id="pane-doc">
+            <div class="doc-scroll" id="doc-scroll">
+              <div class="doc-positioner" id="doc-positioner">
+                <article class="doc" id="doc"></article>
+                <textarea class="source-view" id="source-view" spellcheck="false" hidden></textarea>
+                <div class="overlay" id="overlay"></div>
+                <div class="bookmark-marker" id="bookmark-marker" hidden><span class="bm-marker">¶</span><span class="bm-del" id="bm-del" title="Delete bookmark">✕</span></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="resizer" id="resizer" hidden></div>
-        <div class="pane pane-refs" id="pane-refs" hidden>
-          <div class="pane-head">
-            <div class="ref-tabs">
-              <button data-rtab="refs" class="active">References</button>
-              <button data-rtab="figs">Figures</button>
-              <button data-rtab="tbls">Tables</button>
+          <div class="rrz" id="refs-resizer" title="Drag to resize"></div>
+          <aside class="refs-pane" id="refs-pane" aria-label="References, figures, tables">
+            <div class="pane-head">
+              <div class="ref-tabs">
+                <button data-rtab="refs" class="active">References</button>
+                <button data-rtab="figs">Figures</button>
+                <button data-rtab="tbls">Tables</button>
+              </div>
+              <span class="pane-head-actions">
+                <button id="refs-orient" title="Bottom / side">⇕</button>
+                <button class="pane-x" id="refs-collapse" title="Collapse this panel">▾</button>
+              </span>
             </div>
-            <span class="pane-head-actions">
-              <button id="refs-orient" title="Switch split direction (below / beside)">⇕</button>
-              <button id="refs-close" title="Close panel">×</button>
-            </span>
-          </div>
-          <div class="refs-panel" id="refs-panel"></div>
+            <div class="refs-panel" id="refs-panel"></div>
+          </aside>
         </div>
       </div>
       <div class="selection-bubble" id="bubble" hidden>
@@ -133,6 +134,7 @@
       <div id="comments-list"></div>
     </aside>
     <button class="popout popout-nav" id="popout-nav" title="Show navigation" hidden>Nav</button>
+    <button class="popout popout-refs" id="popout-refs" title="Show references / figures / tables" hidden>Refs</button>
     <button class="popout popout-cmt" id="popout-cmt" title="Show comments" hidden>Comments</button>
   </main>
 
@@ -266,6 +268,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=33"></script>
+  <script src="/app.js?v=34"></script>
 </body>
 </html>

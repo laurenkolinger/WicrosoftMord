@@ -204,12 +204,38 @@ overwritten, and open in Word automatically.
    callout/caption, keeping the **current** caption text.
 4. Double-click `open.command`; in VS Code run `/loop 45s /redline`.
 
-### Figures & tables on export (read this before exporting)
+### Figures & tables — the breakout model (READ THIS, agents especially)
 
-Markdown is the source of truth, so **figures and tables only reach the exported `.docx` if they are in the
-Markdown.** When you revise, keep every `![caption](media/…)` image and every Markdown table in place, at its
-original position, with its caption updated to match your edits. Do not drop a figure/table just because you
-rewrote the surrounding prose. On export the server embeds them into the `.docx` automatically.
+The review UI **pulls every figure and table out of the body** and shows them in their own **Figures** and
+**Tables** tabs (next to References), one at a time, with an editable caption. In the body itself the reader
+sees only a **link** where the figure/table belongs, and a matching link at every "Figure N / Table N" mention.
+This is **render-only** — the Markdown still contains the figures and tables in place, so the exported `.docx`
+rebuilds them exactly where they sit.
+
+**How agents must write figures and tables so this stays clean:**
+
+- Keep each figure as `![Caption](media/…png)` on its own line, and each table as a Markdown pipe table with a
+  `Table N. …` caption paragraph directly above it. Markdown is the source of truth; never drop one because you
+  rewrote the prose around it.
+- **Name each figure/table by its CONTENT**, not by a hard number. The caption's leading words are the name the
+  reader sees on the in-text link (e.g. a link reading *"survey timeline"* rather than *"Table 3"*). Write a
+  short, content-bearing first clause in every caption so the link is meaningful.
+- **Do not hardcode figure/table numbers in the prose.** Reference figures and tables by their content name, not
+  "Figure 3". **Numbering is reapplied automatically in order on export** — if you bake "Table 3" into a
+  sentence and the table is later reordered to position 4, the text and the export disagree. Refer to the
+  *thing*, let the number be assigned at export.
+- **Main vs Supplementary**: a caption beginning `Figure SI-…` / `Table SI-…` routes that object to the
+  Supplementary section and the SI number series; everything else is main text. The reviewer can flip this per
+  object with the **Supplementary (SI)** checkbox in the tab.
+- On export the server embeds figures and tables into the `.docx` at their Markdown positions, with their
+  captions. (Automatic order-based renumbering and SI-section routing are on the roadmap; until then keep the
+  caption numbers sane or let the reviewer renumber.)
+
+**On import (`.docx` → project):** separate figures and tables out as part of the import — either
+programmatically (the importer extracts media into `media/` and converts tables to Markdown pipe tables) or via
+an agent pass that gives every figure/table a clean content-named caption and confirms each one landed in the
+Markdown at the right spot. A document should never arrive with figures fused into prose or tables left as
+images.
 
 ### Pointing Setup at a custom export template
 
