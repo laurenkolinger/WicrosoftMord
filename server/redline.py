@@ -312,6 +312,9 @@ def list_documents():
         for name in filenames:
             if not name.lower().endswith((".md", ".markdown")):
                 continue
+            low = name.lower()
+            if name.startswith(".") or "corrupted" in low or "backup" in low or low.endswith((".bak.md", "~.md")):
+                continue   # never surface backup/corrupted/recovery files as the working document
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, root).replace(os.sep, "/")
             out.append({"path": rel, "title": doc_title(full, rel), "mtime": os.path.getmtime(full)})
