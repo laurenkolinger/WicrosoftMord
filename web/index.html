@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=31" />
+  <link rel="stylesheet" href="/styles.css?v=32" />
 </head>
 <body>
   <header class="topbar">
@@ -12,24 +12,24 @@
       <span class="dot"></span>
       <span id="project-title">WicrosoftMord</span>
     </div>
-    <button class="folder-chip" id="folder-chip" title="Open the project folder in Finder">📁 …</button>
+    <button class="folder-chip" id="folder-chip" title="Open the project folder in Finder">Folder</button>
     <div class="status" id="status">connecting…</div>
     <span class="save-status" id="save-status"></span>
     <span class="wordcount" id="wordcount" title="Word count (press the word-count shortcut on a selection)"></span>
     <span class="activity" id="activity" hidden></span>
-    <button class="newchanges" id="newchanges" hidden title="The document was updated">✶ New changes</button>
+    <button class="newchanges" id="newchanges" hidden title="The document was updated">New changes</button>
     <div class="controls">
-      <button id="setup-btn" title="Setup: folder + your standing directions">⚙ Setup</button>
-      <button id="edit-toggle" title="Edit the text directly">✏️ Edit</button>
+      <button id="setup-btn" title="Setup: folder + your standing directions">Setup</button>
+      <button id="edit-toggle" title="Edit the text directly">Edit</button>
       <button id="source-toggle" title="Toggle plain-text Markdown source (to clean things up)">{ }</button>
       <button id="refs-toggle" title="Split off a References panel">▦ Refs</button>
-      <button id="bookmark-btn" title="Bookmark where you stopped reviewing">🔖</button>
-      <button id="resume-btn" title="Jump to your bookmark" hidden>⤴ Resume</button>
+      <button id="bookmark-btn" title="Drop a bookmark where you stopped reviewing">Bookmark</button>
+      <button id="resume-btn" title="Scroll back to your bookmark" hidden>Go to bookmark</button>
       <button id="font-dec" title="Smaller text (⌘−)">A−</button>
       <button id="font-inc" title="Larger text (⌘+)">A+</button>
-      <button id="figsize-btn" title="Figure display size (view only, does not change the export)">🖼 Fit</button>
-      <button id="theme-toggle" title="Toggle light / dark">◐</button>
-      <button id="wire-btn" title="Copy the command that connects the review loop">⌁ Connect</button>
+      <button id="figsize-btn" title="Figure display size (view only, does not change the export)">Fig size</button>
+      <button id="theme-toggle" title="Toggle between your default light and dark themes">◐</button>
+      <button id="wire-btn" title="Copy the command that connects the review loop">Connect</button>
       <button id="export-md-btn" title="Export the Markdown + figures to the project's exports folder">Export .md</button>
       <button id="export-btn" title="Export current document to .docx">Export .docx</button>
     </div>
@@ -41,19 +41,18 @@
         <strong>Navigation</strong>
         <button class="pane-x" id="nav-collapse" title="Collapse navigation">◀</button>
       </div>
-      <div class="sidebar-scroll">
-        <div id="toc"></div>
-        <div id="doc-list"></div>
-      </div>
-      <div class="sidebar-bottom">
-        <details class="sb-section" id="sb-prompt" open>
-          <summary>Global directions</summary>
-          <textarea id="global-prompt" class="global-prompt" placeholder="Standing instructions followed across the whole project and every comment. Add or change on the fly; saved automatically."></textarea>
-          <div class="gp-status" id="gp-status"></div>
+      <div class="sb-acc">
+        <details class="sb-pane" id="sb-toc" open>
+          <summary>Contents</summary>
+          <div class="sb-body"><div id="toc"></div><div id="doc-list" hidden></div></div>
         </details>
-        <details class="sb-section" id="sb-media" open>
+        <details class="sb-pane" id="sb-prompt" open>
+          <summary>Global directions</summary>
+          <div class="sb-body"><textarea id="global-prompt" class="global-prompt" placeholder="Standing instructions followed across the whole project and every comment. Add or change on the fly; saved automatically."></textarea><div class="gp-status" id="gp-status"></div></div>
+        </details>
+        <details class="sb-pane" id="sb-media" open>
           <summary>Figures & Tables</summary>
-          <div id="figures"></div>
+          <div class="sb-body"><div id="figures"></div></div>
         </details>
       </div>
     </nav>
@@ -72,12 +71,12 @@
         <button data-cmd="insertUnorderedList" title="Bulleted list">•</button>
         <button data-cmd="insertOrderedList" title="Numbered list">1.</button>
         <button data-block="BLOCKQUOTE" title="Quote">❝</button>
-        <button data-link title="Add link">🔗</button>
+        <button data-link title="Add link">Link</button>
         <span class="fb-sep"></span>
         <button data-hl="hl-yellow" class="hlbtn hl-yellow" title="Highlighter: yellow (toggle, then select)"></button>
         <button data-hl="hl-green" class="hlbtn hl-green" title="Highlighter: green (toggle, then select)"></button>
         <button data-hl="hl-red" class="hlbtn hl-red" title="Highlighter: red (toggle, then select)"></button>
-        <button data-unhl class="hlbtn" title="Eraser (toggle, then select)">⌫</button>
+        <button data-unhl class="hlbtn" title="Eraser (toggle, then select)"></button>
         <span class="fb-sep"></span>
         <button id="fb-more" title="More formatting">⋯ More</button>
       </div>
@@ -87,7 +86,7 @@
         <button data-cmd="subscript" title="Subscript">x<sub>2</sub></button>
         <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
         <span class="fb-sep"></span>
-        <button data-pagebreak title="Insert a page break (appears in the .docx export)">⤓ Page break</button>
+        <button data-pagebreak title="Insert a page break (appears in the .docx export)">Page break</button>
       </div>
       <div class="workspace" id="workspace" data-split="none">
         <div class="pane pane-doc" id="pane-doc">
@@ -96,14 +95,18 @@
               <article class="doc" id="doc"></article>
               <textarea class="source-view" id="source-view" spellcheck="false" hidden></textarea>
               <div class="overlay" id="overlay"></div>
-              <div class="bookmark-marker" id="bookmark-marker" hidden>🔖<span class="bm-del" id="bm-del" title="Delete bookmark">✕</span></div>
+              <div class="bookmark-marker" id="bookmark-marker" hidden><span class="bm-marker">¶</span><span class="bm-del" id="bm-del" title="Delete bookmark">✕</span></div>
             </div>
           </div>
         </div>
         <div class="resizer" id="resizer" hidden></div>
         <div class="pane pane-refs" id="pane-refs" hidden>
           <div class="pane-head">
-            <strong>References</strong>
+            <div class="ref-tabs">
+              <button data-rtab="refs" class="active">References</button>
+              <button data-rtab="figs">Figures</button>
+              <button data-rtab="tbls">Tables</button>
+            </div>
             <span class="pane-head-actions">
               <button id="refs-orient" title="Switch split direction (below / beside)">⇕</button>
               <button id="refs-close" title="Close panel">×</button>
@@ -113,7 +116,7 @@
         </div>
       </div>
       <div class="selection-bubble" id="bubble" hidden>
-        <button id="add-comment">💬 Comment</button>
+        <button id="add-comment">Comment</button>
       </div>
     </section>
 
@@ -130,8 +133,8 @@
       </div>
       <div id="comments-list"></div>
     </aside>
-    <button class="popout popout-nav" id="popout-nav" title="Show navigation" hidden>☰ Nav</button>
-    <button class="popout popout-cmt" id="popout-cmt" title="Show comments" hidden>💬 Comments</button>
+    <button class="popout popout-nav" id="popout-nav" title="Show navigation" hidden>Nav</button>
+    <button class="popout popout-cmt" id="popout-cmt" title="Show comments" hidden>Comments</button>
   </main>
 
   <!-- figure lightbox -->
@@ -193,6 +196,11 @@
       <label class="setup-label">Color theme</label>
       <p class="setup-hint">15 light, 15 dark, plus a few for fun. Applies instantly.</p>
       <select id="setup-theme" class="setup-input"></select>
+      <p class="setup-hint">The ◐ button flips between these two:</p>
+      <div class="folder-row">
+        <select id="setup-light-default" class="setup-input" title="Default light theme"></select>
+        <select id="setup-dark-default" class="setup-input" title="Default dark theme"></select>
+      </div>
 
       <label class="setup-label">Base directions</label>
       <p class="setup-hint">Standing house-style rules, followed in every edit and draft.</p>
@@ -204,8 +212,8 @@ Measured, academic tone; no hype words."></textarea>
 
       <label class="setup-label">Open documents in</label>
       <div class="seg" id="setup-mode">
-        <button data-mode="edit" class="active">✏️ Edit</button>
-        <button data-mode="read">👁 Read</button>
+        <button data-mode="edit" class="active">Edit</button>
+        <button data-mode="read"> Read</button>
       </div>
 
       <label class="setup-label">Comment shortcut</label>
@@ -259,6 +267,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=31"></script>
+  <script src="/app.js?v=32"></script>
 </body>
 </html>

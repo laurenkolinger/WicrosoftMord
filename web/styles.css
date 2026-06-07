@@ -488,9 +488,9 @@ mark.hl-blue { background: #90caf9; }
 #toc::-webkit-resizer,#figures::-webkit-resizer{ }
 
 /* plain-text Markdown source view */
-.source-view{ position:absolute; inset:0; width:100%; height:100%; border:none; outline:none; resize:none;
-  background:var(--panel); color:var(--text); padding:18px 22px; box-sizing:border-box;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px; line-height:1.6; white-space:pre-wrap; z-index:3; }
+.source-view{ display:block; width:100%; min-height:calc(100vh - 150px); border:none; outline:none; resize:none;
+  background:var(--panel); color:var(--text); padding:20px 26px; box-sizing:border-box;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px; line-height:1.65; white-space:pre-wrap; word-break:break-word; }
 #source-toggle.active,#fb-more.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
 
 /* figure display size (view only — never changes the export) */
@@ -498,3 +498,65 @@ mark.hl-blue { background: #90caf9; }
 [data-figsize="medium"] .doc figure img,[data-figsize="medium"] .doc > img { max-width: 420px; }
 [data-figsize="small"]  .doc figure img,[data-figsize="small"]  .doc > img { max-width: 260px; }
 [data-figsize="large"]  .doc figure,[data-figsize="medium"] .doc figure,[data-figsize="small"] .doc figure { text-align: center; }
+
+/* more fun themes */
+[data-theme="legally-blonde"]{--ui-font:"Snell Roundhand","Marker Felt","Trebuchet MS",var(--ui-font);
+  --bg:#ffe6f2;--panel:#fff3f9;--panel-2:#ffe0ef;--text:#4a0f33;--muted:#c45c95;--border:#f7bcd9;--accent:#ff1d8e;
+  --hl-open:rgba(255,105,180,.3);--hl-open-strong:rgba(255,29,142,.5);}
+[data-theme="legally-blonde"] body{background:linear-gradient(135deg,#ffd9ec,#ffe6f4 50%,#fff0f7);}
+[data-theme="legally-blonde"] .dot{background:#ff1d8e;box-shadow:0 0 8px #ff8ac4;}
+[data-theme="super-black"]{--ui-font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --bg:#000000;--panel:#000000;--panel-2:#070707;--text:#f2f2f2;--muted:#7d7d7d;--border:#1a1a1a;--accent:#ffffff;
+  --hl-open:rgba(255,255,255,.14);--hl-open-strong:rgba(255,255,255,.3);--ins:#7CFC00;--del:#ff5c5c;--shadow:0 8px 30px rgba(0,0,0,.9);}
+
+/* in-text figure / table reference links + flash target */
+.figref{ color:var(--accent); text-decoration:none; cursor:pointer; border-bottom:1px dotted var(--accent); }
+.figref:hover{ text-decoration:none; background:var(--hl-open); }
+.doc figure.flash,.doc p.flash,.doc table.flash{ animation:figflash 1.6s ease; }
+@keyframes figflash{ 0%,100%{ background:transparent; } 25%{ background:var(--hl-open); } }
+
+/* ---------- sidebar accordion (collapsible + resizable panes) ---------- */
+.sb-acc{ flex:1; display:flex; flex-direction:column; overflow-y:auto; min-height:0; }
+.sidebar{ overflow:hidden; }
+.sb-pane{ border-bottom:1px solid var(--border); display:flex; flex-direction:column; flex:0 0 auto; }
+.sb-pane > summary{ list-style:none; cursor:pointer; padding:8px 12px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; user-select:none; position:sticky; top:0; background:var(--panel); }
+.sb-pane > summary::-webkit-details-marker{ display:none; }
+.sb-pane > summary::before{ content:"▾ "; color:var(--muted); }
+.sb-pane:not([open]) > summary::before{ content:"▸ "; }
+.sb-pane .sb-body{ overflow:auto; resize:vertical; min-height:60px; max-height:70vh; padding:4px 8px 8px; }
+#sb-toc .sb-body{ height:230px; }
+#sb-prompt .sb-body{ height:140px; }
+/* Figures pane grows to fill the rest of the sidebar (no blank space at the bottom) */
+.sb-pane#sb-media{ flex:1 1 auto; min-height:140px; }
+#sb-media .sb-body{ flex:1; height:auto; max-height:none; resize:none; }
+
+/* ---------- figures/tables panel cards ---------- */
+.obj-card{ display:flex; gap:8px; padding:6px; border:1px solid var(--border); border-radius:8px; margin-bottom:6px; align-items:flex-start; }
+.obj-card .fig-thumb{ width:64px; height:auto; max-height:48px; object-fit:cover; border-radius:4px; cursor:pointer; flex:0 0 auto; }
+.obj-card .tbl-thumb{ width:64px; height:40px; display:flex; align-items:center; justify-content:center; background:var(--panel-2); border-radius:4px; font-size:9px; color:var(--muted); flex:0 0 auto; }
+.obj-meta{ flex:1; min-width:0; }
+.obj-label{ font-weight:700; font-size:12px; color:var(--accent); }
+.obj-cap{ font-size:11px; color:var(--muted); line-height:1.35; max-height:3.6em; overflow:hidden; }
+.obj-actions{ margin-top:3px; display:flex; gap:4px; }
+.obj-actions button{ font-size:10.5px; padding:2px 6px; border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:5px; cursor:pointer; }
+.obj-actions button:hover{ border-color:var(--accent); }
+
+/* in-text figure/table links — DISTINCT colour from citation references */
+.figref{ color:#0d9488; border-bottom:1px dashed #0d9488; }
+.figref:hover{ background:rgba(13,148,136,.14); }
+[data-theme="dark"] .figref{ color:#2dd4bf; border-bottom-color:#2dd4bf; }
+
+/* global directions fills its pane */
+#sb-prompt .sb-body{ display:flex; flex-direction:column; }
+#sb-prompt .global-prompt{ flex:1; width:100%; min-height:0; box-sizing:border-box; resize:none; }
+/* inline flash for figure/citation/reference cross-links */
+.doc .figref.flash,.doc .citation.flash,.doc .reflink.flash{ animation:figflash 1.8s ease; border-radius:3px; }
+.rp-find{ float:right; border:none; background:none; color:var(--muted); cursor:pointer; font-size:13px; padding:0 4px; }
+.rp-find:hover{ color:var(--accent); }
+
+/* tabbed side pane (References | Figures | Tables) */
+.ref-tabs{ display:flex; gap:2px; }
+.ref-tabs button{ border:none; background:none; color:var(--muted); cursor:pointer; font-size:12px; padding:4px 8px; border-radius:6px 6px 0 0; }
+.ref-tabs button.active{ color:var(--accent); background:var(--panel-2); font-weight:700; }
+.refs-panel .obj-card{ margin:0 0 8px; }
+.obj-card.flash{ animation:figflash 1.6s ease; }
