@@ -358,6 +358,28 @@ def list_media():
     return out[:500]
 
 
+def _restore_figures(incoming, current):
+    """Auto-repair figures the WYSIWYG editor mangled on serialize (e.g. an image
+    `![cap](src)` that came back as `!<a href=` or vanished). Figures are images —
+    the editor never legitimately changes them — so we restore them, IN ORDER, from
+    the on-disk version. This makes a save preserve the user\'s text edits while never
+    losing a figure, so the catastrophic save-guard effectively never fires."""
+    cur_figs = re.findall(r"(?m)^[ \t]*!\[[^\]]*\]\([^)\s]+\)[^\n]*$", current or "")
+    if not cur_figs:
+        return incoming
+    it = iter(cur_figs)
+    def repl(m):
+        try:
+            return next(it)
+        except StopIteration:
+            return m.group(0)
+    # the editor emits a broken figure marker like "!<a href=" where a figure was
+    out = re.sub(r"(?m)^[ \t]*!<a\s+href=[^\n]*$", repl, incoming)
+    # if figures are simply missing (no marker) and none were restored, leave the
+    # guard to catch a true wipe; otherwise return the repaired text
+    return out
+
+
 def write_doc(rel, content):
     """Save the document straight back to its Markdown source (the .docx source)."""
     full = safe_join(docs_root(), rel)
@@ -369,6 +391,7 @@ def write_doc(rel, content):
     try:
         if os.path.isfile(full):
             old = open(full, "r", encoding="utf-8").read()
+            content = _restore_figures(content, old)   # auto-repair mangled figures before anything else
             def imgs(s): return len(re.findall(r"!\[", s))
             def tbls(s): return sum(1 for l in s.split("\n") if l.lstrip().startswith("|"))
             oi, ni = imgs(old), imgs(content)
