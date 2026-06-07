@@ -69,9 +69,10 @@ if [ -n "$SRC_DOCX" ] && [ -f "$SRC_DOCX" ]; then
   cp "$SRC_DOCX" "$PROJ/"
   base="$(basename "${SRC_DOCX%.*}")"
   if command -v pandoc >/dev/null 2>&1; then
-    # -t markdown keeps each figure as ![full caption](media/...png) inline at its
-    # correct position (captions retained), and tables as Markdown tables.
-    if ( cd "$PROJ" && pandoc "$(basename "$SRC_DOCX")" --extract-media=media -t markdown --wrap=none -o "$base.md" ); then
+    # Figures as ![full caption](media/...png) inline at the right spot (captions kept),
+    # and tables as PIPE tables (disable grid/multiline/simple) so the review UI renders them.
+    if ( cd "$PROJ" && pandoc "$(basename "$SRC_DOCX")" --extract-media=media \
+           -t 'markdown-grid_tables-multiline_tables-simple_tables' --wrap=none -o "$base.md" ); then
       # strip pandoc's {width=...} image attributes so the Markdown stays clean
       python3 - "$PROJ/$base.md" <<'PY'
 import re,sys
