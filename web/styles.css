@@ -560,3 +560,27 @@ mark.hl-blue { background: #90caf9; }
 .ref-tabs button.active{ color:var(--accent); background:var(--panel-2); font-weight:700; }
 .refs-panel .obj-card{ margin:0 0 8px; }
 .obj-card.flash{ animation:figflash 1.6s ease; }
+
+/* figure/table links in the body — DISTINCT from citations, highlighted by default */
+.figref,.objref{ color:#0c7d72; background:rgba(13,148,136,.13); border:none; border-radius:4px; padding:0 4px; text-decoration:none; cursor:pointer; font-weight:600; white-space:nowrap; }
+.figref:hover,.objref:hover{ background:rgba(13,148,136,.28); }
+[data-theme="dark"] .figref,[data-theme="dark"] .objref{ color:#5eead4; background:rgba(45,212,191,.18); }
+/* figures/tables are pulled out of the body — hidden while editing, replaced by links while reading */
+.doc.editing figure,.doc.editing table{ display:none; }
+
+/* tabbed pane: ONE figure/table at a time, caption on top, figure fits the window */
+.obj-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:2px 0 8px; }
+.obj-nav button{ border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:6px; padding:2px 12px; cursor:pointer; }
+.obj-nav button:hover{ border-color:var(--accent); }
+.obj-pos{ font-weight:700; font-size:13px; }
+.obj-caption{ font-family:var(--doc-font); font-size:14px; line-height:1.5; margin-bottom:6px; }
+.obj-num{ font-weight:700; margin-right:4px; }
+.obj-cap-edit{ outline:none; border-radius:3px; padding:1px 2px; }
+.obj-cap-edit:focus{ background:var(--panel-2); box-shadow:0 0 0 1px var(--accent); }
+.obj-si{ display:block; font-size:12px; color:var(--muted); margin:4px 0 8px; cursor:pointer; }
+.obj-view-img{ display:block; max-width:100%; max-height:42vh; width:auto; object-fit:contain; margin:0 auto; border:1px solid var(--border); border-radius:6px; background:#fff; cursor:zoom-in; }
+.obj-view-table{ overflow:auto; max-height:42vh; border:1px solid var(--border); border-radius:6px; }
+.obj-view-table table{ font-size:11px; margin:0; width:100%; }
+.obj-view-actions{ display:flex; gap:6px; margin-top:10px; }
+.obj-view-actions button{ border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:6px; padding:4px 9px; cursor:pointer; font-size:12px; }
+.obj-view-actions button:hover{ border-color:var(--accent); }
