@@ -546,6 +546,7 @@ def create_comment(data):
         "body": data.get("body", ""),
         "status": "open",
         "author": "user",
+        "general": bool(data.get("general")),   # an unanchored command piped to the agent
         "acknowledged": False,
         "createdAt": now_iso(),
         "thread": [],
@@ -592,6 +593,37 @@ def update_comment(cid, action, payload):
 # --------------------------------------------------------------------------- #
 # Export (Markdown -> .docx via pandoc, with linked citations)
 # --------------------------------------------------------------------------- #
+def route_supplementary(text):
+    """Pull every SI figure (`![Figure SI-N ...](...)`) and SI table (a `Table SI-N.`
+    caption + its pipe table) out of the body and into a Supplementary Information
+    section at the end, each on its own page. Main figures/tables stay in place."""
+    lines = text.split("\n")
+    body, si = [], []
+    i, n = 0, len(lines)
+    while i < n:
+        l = lines[i]
+        if re.match(r"^\s*!\[Figure\s+SI-\d+", l, re.I):        # SI figure (standalone image)
+            si.append(l.strip()); i += 1; continue
+        if re.match(r"^\s*Table\s+SI-\d+[.:]", l, re.I):        # SI table caption (+ its pipe table)
+            block = [l.strip()]; j = i + 1
+            while j < n and lines[j].strip() == "":
+                j += 1
+            if j < n and lines[j].lstrip().startswith("|"):
+                block.append("")
+                while j < n and lines[j].lstrip().startswith("|"):
+                    block.append(lines[j].rstrip()); j += 1
+                si.append("\n".join(block)); i = j; continue
+            si.append(l.strip()); i += 1; continue
+        body.append(l); i += 1
+    if not si:
+        return text
+    PB = "<!-- pagebreak -->"
+    out = "\n".join(body).rstrip() + "\n\n" + PB + "\n\n# Supplementary Information\n"
+    for k, blk in enumerate(si):
+        out += ("\n" + PB + "\n" if k > 0 else "") + "\n" + blk + "\n"   # each SI item on its own page
+    return out
+
+
 def export_markdown(rel):
     """Bundle the document's Markdown + its figures into exports/<base>_<stamp>/ so the
     .md is portable (figures resolve, tables keep their pipe formatting)."""
@@ -631,12 +663,14 @@ def export_docx(rel):
     try:
         with open(src, "r", encoding="utf-8") as fh:
             text = fh.read()
-        if "<!-- pagebreak -->" in text:
+        new = route_supplementary(text)            # SI figures/tables -> Supplementary section, each on its own page
+        if "<!-- pagebreak -->" in new:
             pb = "```{=openxml}\n<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n```"
-            text = re.sub(r"<!--\s*pagebreak\s*-->", pb, text)
+            new = re.sub(r"<!--\s*pagebreak\s*-->", pb, new)
+        if new != text:
             ensure_dirs()
             pandoc_src = os.path.join(data_dir(), f"_export_{base}.md")
-            atomic_write(pandoc_src, text)
+            atomic_write(pandoc_src, new)
     except Exception:
         pandoc_src = src
     cmd = [pandoc, pandoc_src, "-o", out, "--standalone",

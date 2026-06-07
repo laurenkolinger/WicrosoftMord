@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WicrosoftMord</title>
-  <link rel="stylesheet" href="/styles.css?v=38" />
+  <link rel="stylesheet" href="/styles.css?v=39" />
 </head>
 <body>
   <header class="topbar">
@@ -44,10 +44,12 @@
           <summary>Contents</summary>
           <div class="sb-body"><div id="toc"></div><div id="doc-list" hidden></div></div>
         </details>
+        <div class="sb-rez" data-above="sb-toc" title="Drag to resize"></div>
         <details class="sb-pane" id="sb-prompt" open>
           <summary>Global directions</summary>
           <div class="sb-body"><textarea id="global-prompt" class="global-prompt" placeholder="Standing instructions followed across the whole project and every comment. Add or change on the fly; saved automatically."></textarea><div class="gp-status" id="gp-status"></div></div>
         </details>
+        <div class="sb-rez" data-above="sb-prompt" title="Drag to resize"></div>
         <details class="sb-pane" id="sb-media" open>
           <summary>Figures & Tables</summary>
           <div class="sb-body"><div id="figures"></div></div>
@@ -117,6 +119,7 @@
       </div>
       <div class="selection-bubble" id="bubble" hidden>
         <button id="add-comment">Comment</button>
+        <button id="add-to-chat" title="Add this selection to the agent chat (⌥A)">Add to chat</button>
       </div>
     </section>
 
@@ -132,6 +135,15 @@
         <button class="pane-x" id="cmt-collapse" title="Collapse comments">▶</button>
       </div>
       <div id="comments-list"></div>
+      <div class="general-cmd" id="general-cmd">
+        <div class="gc-resizer" id="gc-resizer" title="Drag to resize the chat"></div>
+        <div class="gc-head"><strong>Agent chat</strong></div>
+        <div class="gc-log" id="gc-log"></div>
+        <div class="gc-compose">
+          <textarea id="general-cmd-input" placeholder="Message the agent and press Enter (Shift+Enter for a new line)…"></textarea>
+          <button id="general-cmd-send" class="primary">Send</button>
+        </div>
+      </div>
     </aside>
     <button class="popout popout-nav" id="popout-nav" title="Show navigation" hidden>Nav</button>
     <button class="popout popout-refs" id="popout-refs" title="Show references / figures / tables" hidden>Refs</button>
@@ -268,6 +280,6 @@ Measured, academic tone; no hype words."></textarea>
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/app.js?v=38"></script>
+  <script src="/app.js?v=39"></script>
 </body>
 </html>
