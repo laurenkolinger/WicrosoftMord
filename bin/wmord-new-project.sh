@@ -69,11 +69,23 @@ if [ -n "$SRC_DOCX" ] && [ -f "$SRC_DOCX" ]; then
   cp "$SRC_DOCX" "$PROJ/"
   base="$(basename "${SRC_DOCX%.*}")"
   if command -v pandoc >/dev/null 2>&1; then
-    ( cd "$PROJ" && pandoc "$(basename "$SRC_DOCX")" --extract-media=media -t gfm -o "$base.md" ) \
-      && echo "  • converted $(basename "$SRC_DOCX") → $base.md (figures in media/, tables inline)" \
-      || echo "  • pandoc conversion failed; copy the .md in by hand"
+    # -t markdown keeps each figure as ![full caption](media/...png) inline at its
+    # correct position (captions retained), and tables as Markdown tables.
+    if ( cd "$PROJ" && pandoc "$(basename "$SRC_DOCX")" --extract-media=media -t markdown --wrap=none -o "$base.md" ); then
+      # strip pandoc's {width=...} image attributes so the Markdown stays clean
+      python3 - "$PROJ/$base.md" <<'PY'
+import re,sys
+p=sys.argv[1]; s=open(p,encoding="utf-8").read()
+s=re.sub(r'(\!\[[^\]]*\]\([^)]*\))\{[^}]*\}', r'\1', s)   # drop {width=...}
+open(p,"w",encoding="utf-8").write(s)
+PY
+      figs=$(grep -cE '^\!\[' "$PROJ/$base.md" 2>/dev/null || echo 0)
+      echo "  • converted $(basename "$SRC_DOCX") → $base.md ($figs figures with captions in media/, tables inline)"
+    else
+      echo "  • pandoc conversion failed; copy the .md in by hand"
+    fi
   else
-    echo "  • pandoc not found; install it, then: pandoc '$(basename "$SRC_DOCX")' --extract-media=media -t gfm -o '$base.md'"
+    echo "  • pandoc not found; install it, then: pandoc '$(basename "$SRC_DOCX")' --extract-media=media -t markdown --wrap=none -o '$base.md'"
   fi
 fi
 [ -n "$SRC_BIB" ] && [ -f "$SRC_BIB" ] && cp "$SRC_BIB" "$PROJ/references.bib" && echo "  • copied references.bib"
