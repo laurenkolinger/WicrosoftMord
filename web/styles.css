@@ -156,17 +156,16 @@ mark.hl-blue { background: #90caf9; }
 .rp-link:hover { text-decoration: underline; }
 .rp-edit { float: right; border: none; background: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 4px; }
 .rp-edit:hover { color: var(--accent); }
+/* in-text citation link [label](#ref-key): jumps to the reference, doesn't open a tab */
+.reflink { color: var(--accent); text-decoration: none; cursor: pointer; }
+.reflink:hover { text-decoration: underline; }
 
 /* ---------- table of contents ---------- */
 #toc:not(:empty) { border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 6px; }
-.toc-item { display: block; padding: 1px 8px; font-size: 12.5px; line-height: 1.3; min-height: 0; height: auto; color: var(--muted); cursor: pointer; border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+.toc-item { display: flex; align-items: center; gap: 2px; padding: 2px 8px; font-size: 12.5px; line-height: 1.35; color: var(--muted); cursor: pointer; border-radius: 5px; margin: 0; }
 .toc-item:hover { background: var(--panel-2); color: var(--text); }
-.toc-item.lvl1 { font-weight: 650; color: var(--text); margin-top: 5px; }
-.toc-item.lvl1:first-of-type { margin-top: 0; }
-.toc-item.lvl2 { font-weight: 550; color: var(--text); padding-left: 22px; }
-.toc-item.lvl3 { padding-left: 34px; }
-.toc-item.lvl4 { padding-left: 46px; }
-.toc-item.lvl5, .toc-item.lvl6 { padding-left: 56px; }
+.toc-item.lvl1 { font-weight: 650; color: var(--text); }
+.toc-item.lvl2 { font-weight: 550; color: var(--text); }
 
 /* ---------- collapsible panes ---------- */
 .layout.no-nav #sidebar, .layout.no-nav #nav-resizer { display: none; }
@@ -195,10 +194,10 @@ mark.hl-blue { background: #90caf9; }
 .bookmark-marker .bm-del { display: none; margin-left: 2px; font-size: 11px; color: #fff; background: var(--del); border-radius: 50%; padding: 0 4px; }
 .bookmark-marker:hover .bm-del { display: inline; }
 
-/* TOC collapse arrows + bookmark mark */
-.toc-arrow { display: inline-block; width: 12px; text-align: center; font-size: 9px; color: var(--muted); cursor: pointer; vertical-align: middle; }
-.toc-arrow.empty { cursor: default; }
-.toc-label { display: inline; }
+/* TOC collapse arrows + bookmark mark (flex children, so an empty arrow never inflates the row) */
+.toc-arrow { flex: 0 0 13px; width: 13px; text-align: center; font-size: 9px; color: var(--muted); cursor: pointer; }
+.toc-arrow:hover { color: var(--accent); }
+.toc-label { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* acknowledged comment: kept but greyed */
 .card.done { opacity: .55; }
@@ -317,10 +316,18 @@ mark.hl-blue { background: #90caf9; }
 #comments-list { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
 .card { border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); padding: 12px; cursor: pointer; }
+/* awaiting Claude: you've replied and are waiting on a response (yellow border) */
+.card.awaiting-claude { border-color: #e3b341; box-shadow: 0 0 0 1px #e3b341; }
 .card.focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(47,109,246,.18); }
 .card.resolved { opacity: .72; }
 .card .quote { font-size: 12.5px; color: var(--muted); border-left: 3px solid var(--hl-open-strong); padding-left: 8px; margin-bottom: 8px; font-style: italic; max-height: 4.5em; overflow: hidden; }
-.card .body { font-size: 14px; margin-bottom: 8px; }
+.card .body { font-size: 14px; margin-bottom: 8px; user-select: text; }
+/* Claude's response — header row with the toggle + a copy button, and selectable text */
+.resp-head { display: flex; align-items: center; gap: 4px; }
+.resp-head .claude-toggle { flex: 1; text-align: left; }
+.claude-response { user-select: text; display: flex; flex-direction: column; gap: 10px; padding: 4px 0 6px; }
+.claude-response .msg { user-select: text; line-height: 1.5; }
+.claude-response .msg.user { padding-top: 10px; border-top: 1px dashed var(--border); color: var(--muted); }
 .card .meta { font-size: 11px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
 .resolve-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--muted); user-select: none; }
 .resolve-check input { cursor: pointer; margin: 0; }
