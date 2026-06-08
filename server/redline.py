@@ -430,11 +430,22 @@ def _restore_figures(incoming, current):
     return "\n".join(lines)
 
 
-def write_doc(rel, content):
+def write_doc(rel, content, base_mtime=None):
     """Save the document straight back to its Markdown source (the .docx source)."""
     full = safe_join(docs_root(), rel)
     if not full.lower().endswith((".md", ".markdown")):
         raise ValueError("can only edit Markdown documents")
+    # Conflict guard: do not let an editor autosave overwrite an edit made to the file
+    # since the editor loaded it (another window, or a direct file edit). The client
+    # reloads the latest ("new changes") and re-applies instead of clobbering it.
+    try:
+        if base_mtime not in (None, "", 0) and os.path.isfile(full) and os.path.getmtime(full) > float(base_mtime) + 1.5:
+            raise ValueError("conflict: this document changed on disk since you loaded it; "
+                             "click 'new changes' to load the latest, then redo your edit.")
+    except ValueError:
+        raise
+    except Exception:
+        pass
     # HARD SAFETY NET: never let a save wipe the figures or tables, no matter what the
     # client serialized. If the incoming content drops most images/tables that the saved
     # file has, reject the save and keep the file. The .CORRUPTED snapshot is for forensics.
@@ -969,7 +980,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, export_markdown(self._body_json().get("path", "")))
                 if path == "/api/doc/save":
                     data = self._body_json()
-                    return self._send(200, {"ok": True, "mtime": write_doc(data.get("path", ""), data.get("content", ""))})
+                    return self._send(200, {"ok": True, "mtime": write_doc(data.get("path", ""), data.get("content", ""), data.get("baseMtime"))})
                 if path == "/api/ref":
                     data = self._body_json()
                     saved_key = save_bib_entry(data.get("key", ""), data.get("bibtex", ""))
