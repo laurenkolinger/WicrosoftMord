@@ -390,25 +390,44 @@ def save_media_upload(data):
 
 
 def _restore_figures(incoming, current):
-    """Auto-repair figures the WYSIWYG editor mangled on serialize (e.g. an image
-    `![cap](src)` that came back as `!<a href=` or vanished). Figures are images —
-    the editor never legitimately changes them — so we restore them, IN ORDER, from
-    the on-disk version. This makes a save preserve the user\'s text edits while never
-    losing a figure, so the catastrophic save-guard effectively never fires."""
-    cur_figs = re.findall(r"(?m)^[ \t]*!\[[^\]]*\]\([^)\s]+\)[^\n]*$", current or "")
-    if not cur_figs:
+    """Auto-repair figures the WYSIWYG editor mangled OR dropped on save. Figures are
+    images the editor never legitimately edits, so any figure present on disk is kept:
+    broken "!<a href=" markers are replaced in order, then any figure whose image src
+    is still missing is re-inserted after the same preceding paragraph it had on disk.
+    A save preserves the user text edits while never losing a figure."""
+    fig_rx = re.compile(r"(?m)^[ \t]*!\[[^\]]*\]\(([^)\s]+)\)[^\n]*$")
+    cur = [(m.group(0), m.group(1)) for m in fig_rx.finditer(current or "")]
+    if not cur:
         return incoming
-    it = iter(cur_figs)
-    def repl(m):
-        try:
-            return next(it)
-        except StopIteration:
-            return m.group(0)
-    # the editor emits a broken figure marker like "!<a href=" where a figure was
-    out = re.sub(r"(?m)^[ \t]*!<a\s+href=[^\n]*$", repl, incoming)
-    # if figures are simply missing (no marker) and none were restored, leave the
-    # guard to catch a true wipe; otherwise return the repaired text
-    return out
+    it = iter([f[0] for f in cur])
+    out = re.sub(r"(?m)^[ \t]*!<a\s+href=[^\n]*$", lambda m: next(it, m.group(0)), incoming)
+    present = set(m.group(1) for m in fig_rx.finditer(out))
+    if all(src in present for _, src in cur):
+        return out
+    lines = out.split("\n")
+    cur_lines = (current or "").split("\n")
+    for fig_md, src in cur:
+        if src in present:
+            continue
+        anchor = None
+        for i, l in enumerate(cur_lines):
+            if src in l and l.lstrip().startswith("!["):
+                for j in range(i - 1, -1, -1):
+                    if cur_lines[j].strip():
+                        anchor = cur_lines[j].strip()[:50]
+                        break
+                break
+        placed = False
+        if anchor:
+            for i, l in enumerate(lines):
+                if l.strip()[:50] == anchor:
+                    lines[i + 1:i + 1] = ["", fig_md]
+                    placed = True
+                    break
+        if not placed:
+            lines += ["", fig_md]
+        present.add(src)
+    return "\n".join(lines)
 
 
 def write_doc(rel, content):
@@ -794,7 +813,7 @@ def export_docx(rel):
             atomic_write(pandoc_src, new)
     except Exception:
         pandoc_src = src
-    cmd = [pandoc, pandoc_src, "-o", out, "--standalone",
+    cmd = [pandoc, "-f", "markdown-tex_math_dollars", pandoc_src, "-o", out, "--standalone",
            "--resource-path", src_dir + os.pathsep + docs_root()]
     # reference-doc precedence: a custom template you point Setup at wins; otherwise the
     # bundled academic template (Times New Roman / Arial 12pt) chosen in Setup

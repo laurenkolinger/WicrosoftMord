@@ -386,6 +386,7 @@ def import_docx(docx_path, docs_root, comments_dir):
         with open(out_md, encoding="utf-8") as fh:
             _md = fh.read()
         _md2 = _inject_highlight_colors(_strip_image_attrs(_md), document_xml)
+        _md2 = _md2.replace("\\$", "$")   # pandoc escapes $ as backslash-$; keep it plain
         if _md2 != _md:
             with open(out_md, "w", encoding="utf-8") as fh:
                 fh.write(_md2)

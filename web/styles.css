@@ -680,3 +680,6 @@ mark.hl-orange { background: #ffcc80; }
 #cite-picker .cite-opt { padding: 4px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
 #cite-picker .cite-opt.active, #cite-picker .cite-opt:hover { background: var(--panel-2); }
 #cite-picker .cite-key { font-family: ui-monospace, Menlo, monospace; color: var(--accent); font-weight: 700; }
+
+/* flash a figure/table element when its in-text "Figure N" / "Table N" link is clicked */
+.doc figure.flash, .doc table.flash, figure.flash, table.flash { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
