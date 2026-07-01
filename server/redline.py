@@ -835,10 +835,15 @@ def export_docx(rel):
         cmd += ["--reference-doc", custom]
         used_template = os.path.basename(custom)
     elif font in DOCX_FONTS:
-        ref = os.path.join(TEMPLATES_DIR, DOCX_FONTS[font])
+        name = DOCX_FONTS[font]
+        # prefer the project's own templates/<name> so editing that file reflects in exports;
+        # fall back to the copy bundled with the program
+        ref = os.path.join(project_dir(), "templates", name)
+        if not os.path.isfile(ref):
+            ref = os.path.join(TEMPLATES_DIR, name)
         if os.path.isfile(ref):
             cmd += ["--reference-doc", ref]
-            used_template = DOCX_FONTS[font]
+            used_template = name
     bib = find_bib()
     used_csl = None
     if bib:
